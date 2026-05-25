@@ -28,12 +28,12 @@
                     🔐
                 </div>
                 <h2 class="text-xl font-black tracking-wider text-white mt-4 uppercase">Súper Toñita Créditos</h2>
-                <p class="text-[11px] text-gray-500 mt-1 uppercase tracking-widest">Ingresa tu código PIN</p>
+                <p class="text-[11px] text-gray-500 mt-1 uppercase tracking-widest">Ingresa tu código PIN de Acceso</p>
             </div>
             <div class="space-y-4">
                 <input type="password" pattern="\d*" inputmode="numeric" id="login-pin" placeholder="••••••" 
                        class="w-full bg-gray-950 border border-gray-800 p-4 rounded-2xl text-center text-3xl font-bold tracking-widest text-indigo-400 focus:outline-none focus:border-indigo-500 transition-colors">
-                <button onclick="iniciarSesionPorPin()" 
+                <button onclick="iniciarSesionPorPin()" id="btn-login"
                         class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-bold text-sm tracking-widest uppercase shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-transform">
                     🚀 Entrar al Sistema
                 </button>
@@ -77,7 +77,9 @@
                     <div class="space-y-2">
                         <input type="text" id="new-prov-nombre" placeholder="Nombre de Distribuidora (Ej: Tienda Rosa)" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
-                        <input type="email" id="new-prov-email" placeholder="Correo del proveedor (Ej: distribuidor@gmail.com)" 
+                        <input type="email" id="new-prov-email" placeholder="Correo del proveedor (Ej: elbinchavez@gmail.com)" 
+                               class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
+                        <input type="password" pattern="\d*" inputmode="numeric" id="new-prov-pin" placeholder="Asignar PIN de acceso (Ej: 123456)" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
                         <button onclick="crearProveedor()" id="btn-crear-prov" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest mt-1 transition-colors">Crear y Habilitar</button>
                     </div>
@@ -88,14 +90,9 @@
             <section id="sec-config" class="tab-view hidden bg-gray-900 border border-gray-800/80 p-4 rounded-2xl shadow-sm space-y-4">
                 <div>
                     <h3 class="font-bold text-white text-xs uppercase tracking-wider border-b border-gray-800 pb-2">Seguridad de la Plataforma</h3>
-                    <p class="text-[11px] text-gray-500 mt-1">Crea accesos directos para la nube de Firebase Auth de tus proveedores.</p>
+                    <p class="text-[11px] text-gray-500 mt-1">Soporte técnico de Firebase.</p>
                 </div>
-                <div class="space-y-2 bg-gray-950 p-4 rounded-xl border border-gray-800/60">
-                    <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">🔑 Registrar Acceso en Firebase:</p>
-                    <input type="email" id="auth-email" placeholder="Correo del Proveedor" class="w-full bg-gray-900 border border-gray-800 p-2.5 rounded-lg text-sm text-gray-200">
-                    <input type="password" id="auth-pass" placeholder="Contraseña de acceso" class="w-full bg-gray-900 border border-gray-800 p-2.5 rounded-lg text-sm text-gray-200">
-                    <button onclick="crearUsuarioAuth()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-lg font-bold text-xs uppercase tracking-widest mt-1">Registrar Credencial</button>
-                </div>
+                <p class="text-xs text-gray-400 italic">Los proveedores ahora se gestionan y se les da acceso directamente con su número PIN desde la pestaña de Provs.</p>
             </section>
         </main>
     </div>
@@ -147,65 +144,112 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        // 🚨 CAMBIO DE CORREO MASTER REALIZADO AQUÍ 🚨
         const CORREO_ADMIN = "minisupertonita@gmail.com"; 
         const PIN_ADMIN = "199818"; 
         const CONTRASENA_OCULTA_ADMIN = "FrankMaster2026*"; 
         const PIN_BAJA = "1234";
 
+        // Estados de la sesión local
         let esAdmin = false;
+        let proveedorLogueadoEmail = null;
 
+        // --- SISTEMA DE LOGIN INTELIGENTE POR PIN ---
         async function iniciarSesionPorPin() {
             const pinIngresado = document.getElementById('login-pin').value.trim();
-            if(!pinIngresado) return alert("Escribe el código, parce.");
+            const btn = document.getElementById('btn-login');
+            if(!pinIngresado) return alert("Escribe tu código PIN, parce.");
 
-            if (pinIngresado !== PIN_ADMIN) {
-                alert("❌ Código PIN incorrecto.");
+            btn.innerText = "⏳ Verificando PIN...";
+            btn.disabled = true;
+
+            // CASO 1: Es el Administrador Supremo (Tú)
+            if (pinIngresado === PIN_ADMIN) {
+                try {
+                    await auth.signInWithEmailAndPassword(CORREO_ADMIN, CONTRASENA_OCULTA_ADMIN);
+                    document.getElementById('login-pin').value = "";
+                } catch (error) {
+                    alert("Error Administrador: " + error.message);
+                } finally {
+                    btn.innerText = "🚀 Entrar al Sistema";
+                    btn.disabled = false;
+                }
                 return;
             }
 
+            // CASO 2: Es un Proveedor (Búsqueda por PIN en la base de datos)
             try {
-                await auth.signInWithEmailAndPassword(CORREO_ADMIN, CONTRASENA_OCULTA_ADMIN);
-                document.getElementById('login-pin').value = "";
+                const snapshot = await db.collection("proveedores")
+                                       .where("pin_acceso", "==", pinIngresado)
+                                       .where("activo", "==", true)
+                                       .limit(1)
+                                       .get();
+
+                if (snapshot.empty) {
+                    alert("❌ Código PIN no registrado o inactivo.");
+                    btn.innerText = "🚀 Entrar al Sistema";
+                    btn.disabled = false;
+                    return;
+                }
+
+                // Si lo encuentra, guardamos su email en sesión local y simulamos su entorno seguro
+                const datosProv = snapshot.docs[0].data();
+                proveedorLogueadoEmail = datosProv.email_proveedor.toLowerCase();
+                esAdmin = false;
+
+                // Forzamos el cambio visual de la App de inmediato
+                 document.getElementById('login-pin').value = "";
+                 renderizarEntornoApp(false, datosProv.nombre, proveedorLogueadoEmail);
+
             } catch (error) {
-                alert("Error de Acceso:\n" + error.message + "\n\nVerifica que en Firebase Auth el correo sea: " + CORREO_ADMIN);
+                alert("Error de conexión: " + error.message);
+            } finally {
+                btn.innerText = "🚀 Entrar al Sistema";
+                btn.disabled = false;
             }
         }
 
         function cerrarSesion() {
-            auth.signOut();
+            auth.signOut().then(() => {
+                proveedorLogueadoEmail = null;
+                esAdmin = false;
+                document.getElementById('view-app').classList.remove('active');
+                document.getElementById('view-app').style.display = 'none';
+                document.getElementById('view-login').classList.add('active');
+                document.getElementById('view-login').style.display = 'flex';
+            });
         }
 
+        // Monitoreo de cambios de Auth (Para cuando tú te logueas como Admin)
         auth.onAuthStateChanged((user) => {
-            const loginView = document.getElementById('view-login');
-            const appView = document.getElementById('view-app');
-
-            if (user) {
-                esAdmin = (user.email.toLowerCase() === CORREO_ADMIN.toLowerCase());
-                
-                if(loginView) { loginView.classList.remove('active'); loginView.style.display = 'none'; }
-                if(appView) { appView.classList.add('active'); appView.style.display = 'block'; }
-                
-                document.getElementById('app-user-title').innerText = esAdmin ? "⚡ Súper Toñita (Admin)" : `🚚 PROV: ${user.email}`;
-
-                if (esAdmin) {
-                    document.getElementById('admin-tabs').classList.remove('hidden');
-                    document.getElementById('form-nuevo-proveedor').classList.remove('hidden');
-                    switchTab('clientes');
-                    escucharClientes();
-                    escucharProveedores();
-                } else {
-                    document.getElementById('admin-tabs').classList.add('hidden');
-                    document.getElementById('form-nuevo-proveedor').classList.add('hidden');
-                    switchTab('proveedores');
-                    escucharProveedoresRestringido(user.email.toLowerCase());
-                }
-            } else {
-                esAdmin = false;
-                if(appView) { appView.classList.remove('active'); appView.style.display = 'none'; }
-                if(loginView) { loginView.classList.add('active'); loginView.style.display = 'flex'; }
+            if (user && user.email.toLowerCase() === CORREO_ADMIN.toLowerCase()) {
+                esAdmin = true;
+                proveedorLogueadoEmail = null;
+                renderizarEntornoApp(true, "Súper Toñita (Admin)", CORREO_ADMIN);
             }
         });
+
+        // --- RENDERIZADO CONTROLADO DE PANTALLAS ---
+        function renderizarEntornoApp(isAdminRole, nombreMostrar, emailRole) {
+            document.getElementById('view-login').classList.remove('active');
+            document.getElementById('view-login').style.display = 'none';
+            document.getElementById('view-app').classList.add('active');
+            document.getElementById('view-app').style.display = 'block';
+
+            document.getElementById('app-user-title').innerText = isAdminRole ? `⚡ ${nombreMostrar}` : `🚚 PROV: ${nombreMostrar}`;
+
+            if (isAdminRole) {
+                document.getElementById('admin-tabs').classList.remove('hidden');
+                document.getElementById('form-nuevo-proveedor').classList.remove('hidden');
+                switchTab('clientes');
+                escucharClientes();
+                escucharProveedores();
+            } else {
+                document.getElementById('admin-tabs').classList.add('hidden');
+                document.getElementById('form-nuevo-proveedor').classList.add('hidden');
+                switchTab('proveedores');
+                escucharProveedoresRestringido(emailRole);
+            }
+        }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
@@ -224,20 +268,6 @@
             }
         }
 
-        async function crearUsuarioAuth() {
-            const email = document.getElementById('auth-email').value.trim();
-            const pass = document.getElementById('auth-pass').value;
-            if(!email || pass.length < 6) return alert("Completa los datos de proveedor (Clave min 6 caracteres).");
-            try {
-                const secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
-                await secondaryApp.auth().createUserWithEmailAndPassword(email, pass);
-                await secondaryApp.delete();
-                alert(`¡Listo! Credencial creada para ${email}.`);
-                document.getElementById('auth-email').value = "";
-                document.getElementById('auth-pass').value = "";
-            } catch (error) { alert("Error: " + error.message); }
-        }
-
         async function crearCliente() {
             const nombre = document.getElementById('new-cli-nombre').value.trim();
             if(!nombre) return alert("Escribe el nombre.");
@@ -245,28 +275,32 @@
             document.getElementById('new-cli-nombre').value = "";
         }
 
+        // --- REESTRUCTURACIÓN DE CREACIÓN DE PROVEEDORES CON SU PIN ---
         async function crearProveedor() {
             const nombre = document.getElementById('new-prov-nombre').value.trim();
             const email = document.getElementById('new-prov-email').value.trim().toLowerCase();
+            const pin = document.getElementById('new-prov-pin').value.trim();
             const btn = document.getElementById('btn-crear-prov');
 
-            if(!nombre || !email) return alert("Por favor complete los datos de la distribuidora.");
+            if(!nombre || !email || !pin) return alert("Por favor complete todos los datos, incluyendo el PIN de acceso.");
             
-            btn.innerText = "⏳ Creando...";
+            btn.innerText = "⏳ Guardando...";
             btn.disabled = true;
 
             try {
                 await db.collection("proveedores").add({ 
                     nombre: nombre, 
                     email_proveedor: email, 
+                    pin_acceso: pin, // Se guarda el PIN directo en el documento
                     saldo: 0, 
                     activo: true, 
                     fecha: new Date().toISOString() 
                 });
                 
-                alert(`🚀 Proveedor "${nombre}" registrado y habilitado con éxito.`);
+                alert(`🚀 Distribuidora "${nombre}" habilitada. PIN de acceso: ${pin}`);
                 document.getElementById('new-prov-nombre').value = ""; 
                 document.getElementById('new-prov-email').value = "";
+                document.getElementById('new-prov-pin').value = "";
             } catch (error) {
                 alert("Error al guardar proveedor: " + error.message);
             } finally {
@@ -412,6 +446,7 @@
             let txtFactura = tipoEntidad === 'clientes' ? '📄 + Factura' : '📄 + Recibir Factura';
             let txtAbono = tipoEntidad === 'clientes' ? '💵 Registrar Abono' : '💵 Registrar Pago';
 
+            // Un proveedor viendo su propia tarjeta NO ve el botón de "Registrar Pago" (eso solo lo haces tú cuando le das dinero)
             const botonAbono = (tipoEntidad === 'proveedores' && !modoCompleto) ? '' : `<button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'abono', '${nombre}')" class="flex-1 bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-400 py-3 rounded-xl text-xs font-bold border border-emerald-900/50 transition-colors">${txtAbono}</button>`;
 
             div.innerHTML = `
