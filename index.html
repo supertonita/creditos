@@ -15,7 +15,6 @@
         body { background-color: #030712; } /* Gray 950 */
         .view-section { display: none; }
         .view-section.active { display: block; }
-        /* Ocultar flechas de inputs numéricos */
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
@@ -28,7 +27,7 @@
                 <div class="mx-auto w-16 h-16 bg-indigo-950/50 border border-indigo-500/30 rounded-2xl flex items-center justify-center text-2xl shadow-inner shadow-indigo-500/10">
                     🔐
                 </div>
-                <h2 class="text-xl font-black tracking-wider text-white mt-4 uppercase">Control de Créditos</h2>
+                <h2 class="text-xl font-black tracking-wider text-white mt-4 uppercase">Súper Toñita Créditos</h2>
                 <p class="text-[11px] text-gray-500 mt-1 uppercase tracking-widest">Ingresa tu código PIN</p>
             </div>
             <div class="space-y-4">
@@ -78,7 +77,7 @@
                     <div class="space-y-2">
                         <input type="text" id="new-prov-nombre" placeholder="Nombre de Distribuidora (Ej: Tienda Rosa)" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
-                        <input type="email" id="new-prov-email" placeholder="Correo del proveedor (Ej: elbin@gmail.com)" 
+                        <input type="email" id="new-prov-email" placeholder="Correo del proveedor (Ej: distribuidor@gmail.com)" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
                         <button onclick="crearProveedor()" id="btn-crear-prov" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest mt-1 transition-colors">Crear y Habilitar</button>
                     </div>
@@ -133,7 +132,6 @@
     </div>
 
     <script>
-        // Configuración de tu base de datos
         const firebaseConfig = {
             apiKey: "AIzaSyDt-C5k_4Kf_9umGl06LC9WN2EV97O83jc",
             authDomain: "creditoscorinto.firebaseapp.com",
@@ -144,13 +142,12 @@
             measurementId: "G-G0EDE75NPX"
         };
 
-        // Inicializar SDK en modo global estable sin módulos
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        // Parámetros Maestros
+        // 🚨 CAMBIO DE CORREO MASTER REALIZADO AQUÍ 🚨
         const CORREO_ADMIN = "minisupertonita@gmail.com"; 
         const PIN_ADMIN = "199818"; 
         const CONTRASENA_OCULTA_ADMIN = "FrankMaster2026*"; 
@@ -158,7 +155,6 @@
 
         let esAdmin = false;
 
-        // --- SISTEMA DE INICIO DE SESIÓN POR PIN ---
         async function iniciarSesionPorPin() {
             const pinIngresado = document.getElementById('login-pin').value.trim();
             if(!pinIngresado) return alert("Escribe el código, parce.");
@@ -172,7 +168,7 @@
                 await auth.signInWithEmailAndPassword(CORREO_ADMIN, CONTRASENA_OCULTA_ADMIN);
                 document.getElementById('login-pin').value = "";
             } catch (error) {
-                alert("Error de Acceso:\n" + error.message + "\n\nVerifica que la contraseña en Firebase sea exactamente: " + CONTRASENA_OCULTA_ADMIN);
+                alert("Error de Acceso:\n" + error.message + "\n\nVerifica que en Firebase Auth el correo sea: " + CORREO_ADMIN);
             }
         }
 
@@ -180,7 +176,6 @@
             auth.signOut();
         }
 
-        // --- MANEJADOR DE ESTADO EN TIEMPO REAL ---
         auth.onAuthStateChanged((user) => {
             const loginView = document.getElementById('view-login');
             const appView = document.getElementById('view-app');
@@ -191,7 +186,7 @@
                 if(loginView) { loginView.classList.remove('active'); loginView.style.display = 'none'; }
                 if(appView) { appView.classList.add('active'); appView.style.display = 'block'; }
                 
-                document.getElementById('app-user-title').innerText = esAdmin ? "⚡ Frank (Admin)" : `🚚 PROV: ${user.email}`;
+                document.getElementById('app-user-title').innerText = esAdmin ? "⚡ Súper Toñita (Admin)" : `🚚 PROV: ${user.email}`;
 
                 if (esAdmin) {
                     document.getElementById('admin-tabs').classList.remove('hidden');
@@ -212,7 +207,6 @@
             }
         });
 
-        // --- MANEJADOR DE PESTAÑAS TIPO TARGETAS ---
         function switchTab(tabId) {
             document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
             document.getElementById(`sec-${tabId}`).classList.remove('hidden');
@@ -251,7 +245,6 @@
             document.getElementById('new-cli-nombre').value = "";
         }
 
-        // --- FUNCIÓN ACCIÓN PROVEEDOR CORREGIDA ---
         async function crearProveedor() {
             const nombre = document.getElementById('new-prov-nombre').value.trim();
             const email = document.getElementById('new-prov-email').value.trim().toLowerCase();
@@ -327,7 +320,6 @@
                     const dateStr = h.fecha ? new Date(h.fecha).toLocaleDateString() : '';
                     const linkAdjunto = h.url_adjunto ? `<a href="${h.url_adjunto}" target="_blank" class="underline ml-1 font-bold text-indigo-400">📎 Archivo</a>` : '';
                     
-                    // Colores según tipo de movimiento
                     let colorTexto = h.tipo_movimiento === 'factura' ? 'text-red-400' : 'text-emerald-400';
                     let signo = h.tipo_movimiento === 'factura' ? '+' : '-';
 
@@ -342,7 +334,6 @@
         function abrirModalTransaccion(tipoEntidad, id, tipoMovimiento, nombre) {
             document.getElementById('modal-tipo-entidad').value = tipoEntidad; document.getElementById('modal-entidad-id').value = id; document.getElementById('modal-tipo-movimiento').value = tipoMovimiento;
             
-            // Texto del encabezado dinámico según si es cliente o distribuidor
             let accionTexto = "";
             if(tipoEntidad === 'clientes') {
                 accionTexto = tipoMovimiento === 'factura' ? '➕ Nueva Factura (Suma Deuda)' : '💵 Registrar Abono (Resta Deuda)';
@@ -357,7 +348,6 @@
 
         function closeModal() { document.getElementById('modal-transaccion').classList.add('hidden'); }
 
-        // --- MATEMÁTICA EN TRANSACCIÓN ADAPTADA PARA PROVEEDORES ---
         async function ejecutarMovimiento() {
             const tipoEntidad = document.getElementById('modal-tipo-entidad').value; 
             const entidadId = document.getElementById('modal-entidad-id').value;
@@ -384,12 +374,9 @@
                     let saldoActual = sfDoc.data().saldo || 0;
                     let nuevoSaldo = saldoActual;
 
-                    // LÓGICA DE SALDOS (Clientes vs Proveedores)
                     if (tipoEntidad === 'clientes') {
-                        // Factura suma deuda al cliente, Abono le resta deuda
                         nuevoSaldo = tipoMovimiento === 'factura' ? saldoActual + monto : saldoActual - monto;
                     } else {
-                        // Factura suma TU deuda con el Proveedor, Abono/Pago RESTA lo que le debes
                         nuevoSaldo = tipoMovimiento === 'factura' ? saldoActual + monto : saldoActual - monto;
                     }
 
@@ -416,14 +403,12 @@
             else if (pin !== null) { alert("❌ PIN Incorrecto."); }
         }
 
-        // --- CREACIÓN DE TARJETAS UI PREMIUM DARK ---
         function crearTarjetaUI(tipoEntidad, id, nombre, saldo, modoCompleto) {
             const div = document.createElement('div'); 
             div.className = "bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-md space-y-4 relative";
             
             const botonBaja = modoCompleto ? `<button onclick="ejecutarBaja('${tipoEntidad}', '${id}', '${nombre}')" class="absolute top-4 right-4 text-[9px] text-gray-600 hover:text-red-400 font-bold uppercase tracking-widest transition-colors">🚫 Baja</button>` : '';
             
-            // Nombre de botones dinámicos según el rol
             let txtFactura = tipoEntidad === 'clientes' ? '📄 + Factura' : '📄 + Recibir Factura';
             let txtAbono = tipoEntidad === 'clientes' ? '💵 Registrar Abono' : '💵 Registrar Pago';
 
