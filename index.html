@@ -74,9 +74,17 @@
             </section>
 
             <section id="sec-proveedores" class="tab-view hidden space-y-4">
-                <div id="form-nuevo-proveedor" class="hidden bg-gray-900 border border-gray-800/80 p-4 rounded-2xl shadow-sm">
-                    <h3 class="font-bold text-gray-400 mb-2.5 text-[10px] uppercase tracking-widest">Registrar Distribuidora / Proveedor</h3>
-                    <div class="space-y-2">
+                <div id="lista-proveedores" class="space-y-3"></div>
+            </section>
+
+            <section id="sec-config" class="tab-view hidden space-y-4">
+                <div id="form-nuevo-proveedor" class="bg-gray-900 border border-gray-800/80 p-5 rounded-2xl shadow-sm space-y-3">
+                    <div>
+                        <h3 class="font-bold text-white text-xs uppercase tracking-wider border-b border-gray-800 pb-2">🚚 Registrar Nueva Distribuidora</h3>
+                        <p class="text-[10px] text-gray-500 mt-1">Crea las credenciales de acceso privado para tus proveedores.</p>
+                    </div>
+                    
+                    <div class="space-y-2 pt-1">
                         <input type="text" id="new-prov-nombre" placeholder="Nombre de Distribuidora (Ej: Tienda Rosa)" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
                         <input type="email" id="new-prov-email" placeholder="Correo del proveedor (Ej: elbinchavez@gmail.com)" 
@@ -85,18 +93,16 @@
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
                         <input type="password" pattern="\d*" inputmode="numeric" id="new-prov-pin" placeholder="Asignar PIN de acceso (Ej: 123456)" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
-                        <button onclick="crearProveedor()" id="btn-crear-prov" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest mt-1 transition-colors">Crear y Habilitar</button>
+                        
+                        <button onclick="crearProveedor()" id="btn-crear-prov" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest mt-2 transition-colors shadow-md">
+                            🚀 Crear y Habilitar Proveedor
+                        </button>
                     </div>
                 </div>
-                <div id="lista-proveedores" class="space-y-3"></div>
-            </section>
 
-            <section id="sec-config" class="tab-view hidden bg-gray-900 border border-gray-800/80 p-4 rounded-2xl shadow-sm space-y-4">
-                <div>
-                    <h3 class="font-bold text-white text-xs uppercase tracking-wider border-b border-gray-800 pb-2">Seguridad de la Plataforma</h3>
-                    <p class="text-[11px] text-gray-500 mt-1">Soporte técnico de Firebase.</p>
+                <div class="bg-gray-900 border border-gray-800/80 p-4 rounded-2xl text-center">
+                    <p class="text-[11px] text-gray-400 font-medium">🛡️ Sistema de Gestión Privado — Mini Súper Toñita 2026</p>
                 </div>
-                <p class="text-xs text-gray-400 italic">Los proveedores se gestionan y se les da acceso directamente con su número PIN desde la pestaña de Provs.</p>
             </section>
         </main>
     </div>
@@ -236,13 +242,11 @@
 
             if (isAdminRole) {
                 document.getElementById('admin-tabs').classList.remove('hidden');
-                document.getElementById('form-nuevo-proveedor').classList.remove('hidden');
                 switchTab('clientes');
                 escucharClientes();
                 escucharProveedores();
             } else {
                 document.getElementById('admin-tabs').classList.add('hidden');
-                document.getElementById('form-nuevo-proveedor').classList.add('hidden');
                 switchTab('proveedores');
                 escucharProveedoresRestringido(emailRole);
             }
@@ -290,7 +294,7 @@
                 await db.collection("proveedores").add({ 
                     nombre: nombre, 
                     email_proveedor: email,
-                    telefono_proveedor: telefono || "", // Se guarda el teléfono limpio
+                    telefono_proveedor: telefono || "", 
                     pin_acceso: pin, 
                     saldo: 0, 
                     activo: true, 
@@ -302,10 +306,11 @@
                 document.getElementById('new-prov-email').value = "";
                 document.getElementById('new-prov-telefono').value = "";
                 document.getElementById('new-prov-pin').value = "";
+                switchTab('proveedores'); // Te redirige automáticamente a ver los proveedores al crearlo
             } catch (error) {
                 alert("Error al guardar proveedor: " + error.message);
             } finally {
-                btn.innerText = "Crear y Habilitar";
+                btn.innerText = "🚀 Crear y Habilitar Proveedor";
                 btn.disabled = false;
             }
         }
@@ -346,16 +351,28 @@
             });
         }
 
+        // --- CORRECCIÓN FIJA DEL HISTORIAL DE MOVIMIENTOS ---
         function escucharHistorial(entidadId, contenedorHistorial) {
-            db.collection("movimientos_credito").where("entidad_id", "==", entidadId).orderBy("fecha", "desc").onSnapshot((snapshot) => {
+            // Quitamos el query .orderBy() directo de Firebase para evitar la traba del índice compuesto requerido
+            db.collection("movimientos_credito").where("entidad_id", "==", entidadId).onSnapshot((snapshot) => {
                 contenedorHistorial.innerHTML = "";
                 cacheMovimientos[entidadId] = [];
                 
-                if(snapshot.empty) { contenedorHistorial.innerHTML = `<p class="text-[10px] text-gray-600 italic">Sin movimientos registrados.</p>`; return; }
-                snapshot.forEach(docSnap => {
-                    const h = docSnap.data();
-                    cacheMovimientos[entidadId].push(h);
+                if(snapshot.empty) { 
+                    contenedorHistorial.innerHTML = `<p class="text-[10px] text-gray-600 italic">Sin movimientos registrados.</p>`; 
+                    return; 
+                }
 
+                let arrMovimientos = [];
+                snapshot.forEach(docSnap => {
+                    arrMovimientos.push(docSnap.data());
+                });
+
+                // Ordenamos el arreglo nativamente en memoria por fecha descendiente (más reciente primero)
+                arrMovimientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                cacheMovimientos[entidadId] = arrMovimientos;
+
+                arrMovimientos.forEach(h => {
                     const dateStr = h.fecha ? new Date(h.fecha).toLocaleDateString() : '';
                     const linkAdjunto = h.url_adjunto ? `<a href="${h.url_adjunto}" target="_blank" class="underline ml-1 font-bold text-indigo-400">📎 Archivo</a>` : '';
                     
@@ -363,7 +380,7 @@
                     let signo = h.tipo_movimiento === 'factura' ? '+' : '-';
 
                     const div = document.createElement('div');
-                    div.className = `flex justify-between items-center text-[11px] py-1.5 border-b border-gray-900 ${colorTexto}`;
+                    div.className = `flex justify-between items-center text-[11px] py-1.5 border-b border-gray-950 ${colorTexto}`;
                     div.innerHTML = `<span>${dateStr} - ${h.detalle} ${linkAdjunto}</span><span class="font-bold">${signo}$${h.monto.toFixed(2)}</span>`;
                     contenedorHistorial.appendChild(div);
                 });
@@ -436,7 +453,6 @@
             else if (pin !== null) { alert("❌ PIN Incorrecto."); }
         }
 
-        // --- CORRECCIÓN: WHATSAPP RECONOCE EL NÚMERO DIRECTO DE LA BASE DE DATOS ---
         function enviarWhatsApp(nombre, saldo, tipoEntidad, numeroTelefono) {
             let mensaje = "";
             if(tipoEntidad === 'clientes') {
@@ -445,10 +461,8 @@
                 mensaje = `Hola, te saludamos de Mini Súper Toñita. Queremos informarle que registramos una actualización en nuestro estado de cuenta. Nuestro saldo actual con ustedes es de *$${saldo.toFixed(2)}*. Quedamos al día.`;
             }
             
-            // Si tiene número guardado, lo pone en la URL; si no, abre el compartir general como antes.
             let url = "";
             if(numeroTelefono) {
-                // Elimina espacios o caracteres raros por si acaso
                 const numLimpio = numeroTelefono.replace(/[^0-9]/g, "");
                 url = `https://api.whatsapp.com/send?phone=${numLimpio}&text=${encodeURIComponent(mensaje)}`;
             } else {
