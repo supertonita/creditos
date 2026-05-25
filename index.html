@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Control de Créditos - PIN Login</title>
+    <title>Control de Créditos</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-storage-compat.js"></script>
+
     <style>
         .view-section { display: none; }
         .view-section.active { display: block; }
@@ -12,16 +18,14 @@
 </head>
 <body class="bg-gray-100 font-sans min-h-screen pb-10">
 
-    <!-- ================= PANTALLA DE LOGIN POR PIN ================= -->
     <div id="view-login" class="view-section active min-h-screen flex items-center justify-center p-4">
         <div class="bg-white p-6 rounded-2xl shadow-md w-full max-w-sm space-y-4">
             <div class="text-center">
                 <span class="text-4xl">🔐</span>
                 <h2 class="text-xl font-black text-gray-800 mt-2">CONTROL DE CRÉDITOS</h2>
-                <p class="text-xs text-gray-400">Ingresa tu código pin de acceso</p>
+                <p class="text-xs text-gray-400">pin de acceso</p>
             </div>
             <div class="space-y-3">
-                <!-- Solo un campo numérico para máxima velocidad -->
                 <input type="password" pattern="\d*" inputmode="numeric" id="login-pin" placeholder="••••••" class="w-full border p-4 rounded-xl text-center text-2xl font-bold tracking-widest focus:outline-indigo-500">
                 <button onclick="iniciarSesionPorPin()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-sm shadow-md hover:bg-indigo-700">
                     🚀 Entrar
@@ -30,7 +34,6 @@
         </div>
     </div>
 
-    <!-- ================= CONTENEDOR PRINCIPAL (LOGUEADO) ================= -->
     <div id="view-app" class="view-section">
         <header class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-50">
             <div class="flex justify-between items-center max-w-md mx-auto">
@@ -48,7 +51,6 @@
         </header>
 
         <main class="max-w-md mx-auto p-4 space-y-6">
-            <!-- PESTAÑA: CLIENTES -->
             <section id="sec-clientes" class="tab-view hidden space-y-4">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                     <h3 class="font-bold text-gray-700 mb-2 text-xs uppercase">Nuevo Cliente a Crédito</h3>
@@ -60,7 +62,6 @@
                 <div id="lista-clientes" class="space-y-3"></div>
             </section>
 
-            <!-- PESTAÑA: PROVEEDORES -->
             <section id="sec-proveedores" class="tab-view hidden space-y-4">
                 <div id="form-nuevo-proveedor" class="hidden bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                     <h3 class="font-bold text-gray-700 mb-2 text-xs uppercase">Registrar Distribuidora / Proveedor</h3>
@@ -73,7 +74,6 @@
                 <div id="lista-proveedores" class="space-y-3"></div>
             </section>
 
-            <!-- PESTAÑA: CONFIGURACIÓN -->
             <section id="sec-config" class="tab-view hidden bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
                 <h3 class="font-bold text-gray-700 text-sm uppercase border-b pb-2">Panel de Administración</h3>
                 <p class="text-xs text-gray-500">Crea los accesos para tus proveedores en Firebase Auth.</p>
@@ -87,7 +87,6 @@
         </main>
     </div>
 
-    <!-- MODAL DE TRANSACCIÓN -->
     <div id="modal-transaccion" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-xl">
             <div class="flex justify-between items-center border-b pb-2">
@@ -115,13 +114,8 @@
         </div>
     </div>
 
-    <!-- ================= CONEXIÓN FIREBASE ================= -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getFirestore, collection, doc, addDoc, updateDoc, query, where, onSnapshot, orderBy, runTransaction } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
-
+    <script>
+        // Configuración oficial de tu app
         const firebaseConfig = {
             apiKey: "AIzaSyDt-C5k_4Kf_9umGl06LC9WN2EV97O83jc",
             authDomain: "creditoscorinto.firebaseapp.com",
@@ -132,49 +126,45 @@
             measurementId: "G-G0EDE75NPX"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
+        // Inicializar Firebase en modo Global Estable
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
 
-        // CONFIGURACIONES MAESTRAS
-        const CORREO_ADMIN = "frankreyes@gmail.com"; 
-        const PIN_ADMIN = "199818"; // Tu código rápido para entrar
-        const CONTRASENA_OCULTA_ADMIN = "FrankMaster2026*"; // Esta es la clave real que usarás en Firebase Console
+        // Parámetros de seguridad de Frank
+        const CORREO_ADMIN = "minisupertonita@gmail.com"; 
+        const PIN_ADMIN = "199818"; 
+        const CONTRASENA_OCULTA_ADMIN = "FrankMaster2026*"; // Esta es la clave asignada en tu captura
         const PIN_BAJA = "1234";
 
         let esAdmin = false;
 
-        // --- LOGIN ENMASCARADO POR PIN ---
-        window.iniciarSesionPorPin = async () => {
+        // --- SISTEMA DE INICIO DE SESIÓN INTEGRADO POR PIN ---
+        async function iniciarSesionPorPin() {
             const pinIngresado = document.getElementById('login-pin').value.trim();
             if(!pinIngresado) return alert("Escribe el código, parce.");
 
-            let emailFinal = "";
-            let passFinal = "";
-
-            if (pinIngresado === PIN_ADMIN) {
-                // Si digitas tu pin maestro, el sistema sabe que eres tú
-                emailFinal = CORREO_ADMIN;
-                passFinal = CONTRASENA_OCULTA_ADMIN;
-            } else {
-                // Si no es tu PIN, asumimos que es un proveedor intentando entrar con su PIN.
-                // (Para simplificar, el proveedor puede usar su clave normal o crearse códigos parecidos)
-                alert("Código incorrecto, parce. Si eres proveedor ingresa tu credencial.");
+            if (pinIngresado !== PIN_ADMIN) {
+                alert("❌ Código PIN de Administrador incorrecto.");
                 return;
             }
 
             try {
-                await signInWithEmailAndPassword(auth, emailFinal, passFinal);
+                // Ejecución directa garantizada
+                await auth.signInWithEmailAndPassword(CORREO_ADMIN, CONTRASENA_OCULTA_ADMIN);
                 document.getElementById('login-pin').value = "";
             } catch (error) {
-                alert("Error de autenticación: " + error.message + "\n\nRecuerda haber creado el usuario frankreyes@gmail.com con la contraseña '" + CONTRASENA_OCULTA_ADMIN + "' en tu consola de Firebase Auth.");
+                alert("Error de Firebase:\n" + error.message + "\n\nVerifica que la contraseña del usuario en tu consola sea exactamente: " + CONTRASENA_OCULTA_ADMIN);
             }
-        };
+        }
 
-        window.cerrarSesion = () => signOut(auth);
+        function cerrarSesion() {
+            auth.signOut();
+        }
 
-        onAuthStateChanged(auth, (user) => {
+        // --- OBSERVADOR DE ESTADO DE ACCESO ---
+        auth.onAuthStateChanged((user) => {
             if (user) {
                 esAdmin = (user.email.toLowerCase() === CORREO_ADMIN.toLowerCase());
                 document.getElementById('view-login').classList.remove('active');
@@ -200,7 +190,7 @@
             }
         });
 
-        window.switchTab = (tabId) => {
+        function switchTab(tabId) {
             document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
             document.getElementById(`sec-${tabId}`).classList.remove('hidden');
             if(esAdmin) {
@@ -208,29 +198,32 @@
                 const activeBtn = document.getElementById(`tab-btn-${tabId}`);
                 if(activeBtn) { activeBtn.classList.remove('text-white'); activeBtn.classList.add('bg-white', 'text-indigo-700'); }
             }
-        };
+        }
 
-        window.crearUsuarioAuth = async () => {
+        async function crearUsuarioAuth() {
             const email = document.getElementById('auth-email').value.trim();
             const pass = document.getElementById('auth-pass').value;
-            if(!email || pass.length < 6) return alert("Completa los campos de proveedor (Clave min 6 caracteres).");
+            if(!email || pass.length < 6) return alert("Completa los datos de proveedor (Clave min 6 caracteres).");
             try {
-                await createUserWithEmailAndPassword(auth, email, pass);
+                // Crea el usuario sin desloguear la sesión actual
+                const secundaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
+                await secundaryApp.auth().createUserWithEmailAndPassword(email, pass);
+                await secundaryApp.delete();
                 alert(`¡Listo! Credencial creada para ${email}.`);
                 document.getElementById('auth-email').value = "";
                 document.getElementById('auth-pass').value = "";
             } catch (error) { alert("Error: " + error.message); }
-        };
+        }
 
-        window.crearCliente = async () => {
+        async function crearCliente() {
             const nombre = document.getElementById('new-cli-nombre').value.trim();
             if(!nombre) return alert("Escribe el nombre.");
-            await addDoc(collection(db, "clientes"), { nombre, saldo: 0, activo: true, fecha: new Date().toISOString() });
+            await db.collection("clientes").add({ nombre, saldo: 0, activo: true, fecha: new Date().toISOString() });
             document.getElementById('new-cli-nombre').value = "";
-        };
+        }
 
         function escucharClientes() {
-            onSnapshot(query(collection(db, "clientes"), where("activo", "==", true)), (snapshot) => {
+            db.collection("clientes").where("activo", "==", true).onSnapshot((snapshot) => {
                 const contenedor = document.getElementById('lista-clientes'); contenedor.innerHTML = "";
                 snapshot.forEach(docSnap => {
                     const id = docSnap.id; const item = docSnap.data();
@@ -241,17 +234,17 @@
             });
         }
 
-        window.crearProveedor = async () => {
+        async function crearProveedor() {
             const nombre = document.getElementById('new-prov-nombre').value.trim();
             const email = document.getElementById('new-prov-email').value.trim().toLowerCase();
             if(!nombre || !email) return alert("Completa los datos.");
-            await addDoc(collection(db, "proveedores"), { nombre, email_proveedor: email, saldo: 0, activo: true, fecha: new Date().toISOString() });
+            await db.collection("proveedores").add({ nombre, email_proveedor: email, saldo: 0, activo: true, fecha: new Date().toISOString() });
             document.getElementById('new-prov-nombre').value = ""; document.getElementById('new-prov-email').value = "";
             alert("Proveedor vinculado.");
-        };
+        }
 
         function escucharProveedores() {
-            onSnapshot(query(collection(db, "proveedores"), where("activo", "==", true)), (snapshot) => {
+            db.collection("proveedores").where("activo", "==", true).onSnapshot((snapshot) => {
                 const contenedor = document.getElementById('lista-proveedores'); contenedor.innerHTML = "";
                 snapshot.forEach(docSnap => {
                     const id = docSnap.id; const item = docSnap.data();
@@ -263,7 +256,7 @@
         }
 
         function escucharProveedoresRestringido(emailProveedor) {
-            onSnapshot(query(collection(db, "proveedores"), where("email_proveedor", "==", emailProveedor), where("activo", "==", true)), (snapshot) => {
+            db.collection("proveedores").where("email_proveedor", "==", emailProveedor).where("activo", "==", true).onSnapshot((snapshot) => {
                 const contenedor = document.getElementById('lista-proveedores'); contenedor.innerHTML = "";
                 snapshot.forEach(docSnap => {
                     const id = docSnap.id; const item = docSnap.data();
@@ -275,7 +268,7 @@
         }
 
         function escucharHistorial(entidadId, contenedorHistorial) {
-            onSnapshot(query(collection(db, "movimientos_credito"), where("entidad_id", "==", entidadId), orderBy("fecha", "desc")), (snapshot) => {
+            db.collection("movimientos_credito").where("entidad_id", "==", entidadId).orderBy("fecha", "desc").onSnapshot((snapshot) => {
                 contenedorHistorial.innerHTML = "";
                 if(snapshot.empty) { contenedorHistorial.innerHTML = `<p class="text-[10px] text-gray-400 italic">Sin movimientos.</p>`; return; }
                 snapshot.forEach(docSnap => {
@@ -287,19 +280,21 @@
                     div.innerHTML = `<span>${dateStr} - ${h.detalle} ${linkAdjunto}</span><span class="font-bold">${h.tipo_movimiento === 'factura' ? '+' : '-'}$${h.monto.toFixed(2)}</span>`;
                     contenedorHistorial.appendChild(div);
                 });
+            }, error => {
+                console.log("Esperando index...");
             });
         }
 
-        window.abrirModalTransaccion = (tipoEntidad, id, tipoMovimiento, nombre) => {
+        function abrirModalTransaccion(tipoEntidad, id, tipoMovimiento, nombre) {
             document.getElementById('modal-tipo-entidad').value = tipoEntidad; document.getElementById('modal-entidad-id').value = id; document.getElementById('modal-tipo-movimiento').value = tipoMovimiento;
             document.getElementById('modal-titulo').innerText = `${tipoMovimiento === 'factura' ? '➕ Nueva Factura' : '💵 Registrar Abono'} ➔ ${nombre}`;
             document.getElementById('modal-monto').value = ""; document.getElementById('modal-detalle').value = ""; document.getElementById('modal-file').value = "";
             document.getElementById('modal-transaccion').classList.remove('hidden');
-        };
+        }
 
-        window.closeModal = () => document.getElementById('modal-transaccion').classList.add('hidden');
+        function closeModal() { document.getElementById('modal-transaccion').classList.add('hidden'); }
 
-        window.ejecutarMovimiento = async () => {
+        async function ejecutarMovimiento() {
             const tipoEntidad = document.getElementById('modal-tipo-entidad').value; const entidadId = document.getElementById('modal-entidad-id').value;
             const tipoMovimiento = document.getElementById('modal-tipo-movimiento').value; const monto = parseFloat(document.getElementById('modal-monto').value);
             const detalle = document.getElementById('modal-detalle').value.trim() || (tipoMovimiento === 'factura' ? 'Factura' : 'Abono');
@@ -312,30 +307,32 @@
                 let url_adjunto = null;
                 if(fileInput.files.length > 0) {
                     const archivo = fileInput.files[0];
-                    const storageRef = ref(storage, `comprobantes/${Date.now()}_${archivo.name}`);
-                    await uploadBytes(storageRef, archivo);
-                    url_adjunto = await getDownloadURL(storageRef);
+                    const storageRef = storage.ref(`comprobantes/${Date.now()}_${archivo.name}`);
+                    const uploadSnap = await storageRef.put(archivo);
+                    url_adjunto = await uploadSnap.ref.getDownloadURL();
                 }
 
-                const entidadDocRef = doc(db, tipoEntidad, entidadId);
-                await runTransaction(db, async (transaction) => {
+                const entidadDocRef = db.collection(tipoEntidad).doc(entidadId);
+                await db.runTransaction(async (transaction) => {
                     const sfDoc = await transaction.get(entidadDocRef);
                     let nuevoSaldo = (sfDoc.data().saldo || 0) + (tipoMovimiento === 'factura' ? monto : -monto);
                     transaction.update(entidadDocRef, { saldo: nuevoSaldo });
-                    transaction.set(doc(collection(db, "movimientos_credito")), {
+                    
+                    const nuevoMovRef = db.collection("movimientos_credito").doc();
+                    transaction.set(nuevoMovRef, {
                         tipo_entidad: tipoEntidad === 'clientes' ? 'cliente' : 'proveedor',
                         entidad_id: entidadId, tipo_movimiento: tipoMovimiento, monto, detalle, url_adjunto, fecha: new Date().toISOString()
                     });
                 });
                 closeModal();
             } catch (e) { alert("Error: " + e); } finally { btn.innerText = "💾 Guardar Registro"; btn.disabled = false; }
-        };
+        }
 
-        window.ejecutarBaja = async (tipoEntidad, id, nombre) => {
+        async function ejecutarBaja(tipoEntidad, id, nombre) {
             const pin = prompt(`🔒 PIN de seguridad para dar de baja a:\n"${nombre}"`);
-            if (pin === PIN_BAJA) { await updateDoc(doc(db, tipoEntidad, id), { activo: false }); alert("Dado de baja."); } 
+            if (pin === PIN_BAJA) { await db.collection(tipoEntidad).doc(id).update({ activo: false }); alert("Dado de baja."); } 
             else if (pin !== null) { alert("❌ PIN Incorrecto."); }
-        };
+        }
 
         function crearTarjetaUI(tipoEntidad, id, nombre, saldo, modoCompleto) {
             const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3 relative";
