@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Créditos</title>
+    <title>Control de Créditos - Premium Dark Mode</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
@@ -12,110 +12,128 @@
     <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-storage-compat.js"></script>
 
     <style>
+        body { background-color: #030712; } /* Gray 950 */
         .view-section { display: none; }
         .view-section.active { display: block; }
+        /* Ocultar flechas de inputs numéricos */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen pb-10">
+<body class="text-gray-100 font-sans min-h-screen pb-10">
 
     <div id="view-login" class="view-section active min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded-2xl shadow-md w-full max-w-sm space-y-4">
-            <div class="text-center">
-                <span class="text-4xl">🔐</span>
-                <h2 class="text-xl font-black text-gray-800 mt-2">CONTROL DE CRÉDITOS</h2>
-                <p class="text-xs text-gray-400">pin de acceso</p>
+        <div class="bg-gray-900 border border-gray-800 p-8 rounded-3xl shadow-2xl w-full max-w-sm space-y-6 text-center">
+            <div>
+                <div class="mx-auto w-16 h-16 bg-indigo-950/50 border border-indigo-500/30 rounded-2xl flex items-center justify-center text-2xl shadow-inner shadow-indigo-500/10">
+                    🔐
+                </div>
+                <h2 class="text-xl font-black tracking-wider text-white mt-4 uppercase">Control de Créditos</h2>
+                <p class="text-[11px] text-gray-500 mt-1 uppercase tracking-widest">Ingresa tu código PIN</p>
             </div>
-            <div class="space-y-3">
-                <input type="password" pattern="\d*" inputmode="numeric" id="login-pin" placeholder="••••••" class="w-full border p-4 rounded-xl text-center text-2xl font-bold tracking-widest focus:outline-indigo-500">
-                <button onclick="iniciarSesionPorPin()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-sm shadow-md hover:bg-indigo-700">
-                    🚀 Entrar
+            <div class="space-y-4">
+                <input type="password" pattern="\d*" inputmode="numeric" id="login-pin" placeholder="••••••" 
+                       class="w-full bg-gray-950 border border-gray-800 p-4 rounded-2xl text-center text-3xl font-bold tracking-widest text-indigo-400 focus:outline-none focus:border-indigo-500 transition-colors">
+                <button onclick="iniciarSesionPorPin()" 
+                        class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-bold text-sm tracking-widest uppercase shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-transform">
+                    🚀 Entrar al Sistema
                 </button>
             </div>
         </div>
     </div>
 
     <div id="view-app" class="view-section">
-        <header class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-50">
+        <header class="bg-gray-900/80 backdrop-blur-md border-b border-gray-800/60 p-4 sticky top-0 z-50">
             <div class="flex justify-between items-center max-w-md mx-auto">
-                <h1 class="text-sm font-black tracking-wider uppercase" id="app-user-title">Cargando...</h1>
-                <button onclick="cerrarSesion()" class="text-xs bg-indigo-700 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-800">
+                <h1 class="text-xs font-black tracking-widest uppercase text-indigo-400" id="app-user-title">Cargando...</h1>
+                <button onclick="cerrarSesion()" class="text-[10px] uppercase tracking-widest bg-gray-800 border border-gray-700 px-3 py-2 rounded-xl font-bold text-gray-300 hover:bg-red-950/30 hover:text-red-400 hover:border-red-900/50 transition-colors">
                     🚪 Salir
                 </button>
             </div>
             
-            <div id="admin-tabs" class="hidden max-w-md mx-auto flex mt-3 bg-indigo-700 rounded-lg p-1 text-xs font-bold">
-                <button onclick="switchTab('clientes')" id="tab-btn-clientes" class="w-1/3 py-2 text-center rounded-md bg-white text-indigo-700">👥 Clientes</button>
-                <button onclick="switchTab('proveedores')" id="tab-btn-proveedores" class="w-1/3 py-2 text-center rounded-md text-white">🚚 Proveedores</button>
-                <button onclick="switchTab('config')" id="tab-btn-config" class="w-1/3 py-2 text-center rounded-md text-white">⚙️ Config</button>
+            <div id="admin-tabs" class="hidden max-w-md mx-auto flex mt-4 bg-gray-950 border border-gray-800/80 rounded-xl p-1 text-[11px] font-bold tracking-wider uppercase">
+                <button onclick="switchTab('clientes')" id="tab-btn-clientes" class="w-1/3 py-2.5 text-center rounded-lg bg-indigo-600 text-white transition-all">👥 Clientes</button>
+                <button onclick="switchTab('proveedores')" id="tab-btn-proveedores" class="w-1/3 py-2.5 text-center rounded-lg text-gray-400 transition-all">🚚 Provs</button>
+                <button onclick="switchTab('config')" id="tab-btn-config" class="w-1/3 py-2.5 text-center rounded-lg text-gray-400 transition-all">⚙️ Panel</button>
             </div>
         </header>
 
         <main class="max-w-md mx-auto p-4 space-y-6">
+            
             <section id="sec-clientes" class="tab-view hidden space-y-4">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                    <h3 class="font-bold text-gray-700 mb-2 text-xs uppercase">Nuevo Cliente a Crédito</h3>
+                <div class="bg-gray-900 border border-gray-800/80 p-4 rounded-2xl shadow-sm">
+                    <h3 class="font-bold text-gray-400 mb-2.5 text-[10px] uppercase tracking-widest">Nuevo Cliente a Crédito</h3>
                     <div class="flex gap-2">
-                        <input type="text" id="new-cli-nombre" placeholder="Nombre o Apodo del cliente" class="flex-1 border p-2 rounded-lg text-sm focus:outline-indigo-500">
-                        <button onclick="crearCliente()" class="bg-indigo-600 text-white px-4 rounded-lg font-bold">+</button>
+                        <input type="text" id="new-cli-nombre" placeholder="Nombre o apodo del cliente" 
+                               class="flex-1 bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
+                        <button onclick="crearCliente()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 rounded-xl font-black text-lg transition-colors">+</button>
                     </div>
                 </div>
                 <div id="lista-clientes" class="space-y-3"></div>
             </section>
 
             <section id="sec-proveedores" class="tab-view hidden space-y-4">
-                <div id="form-nuevo-proveedor" class="hidden bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                    <h3 class="font-bold text-gray-700 mb-2 text-xs uppercase">Registrar Distribuidora / Proveedor</h3>
+                <div id="form-nuevo-proveedor" class="hidden bg-gray-900 border border-gray-800/80 p-4 rounded-2xl shadow-sm">
+                    <h3 class="font-bold text-gray-400 mb-2.5 text-[10px] uppercase tracking-widest">Registrar Distribuidora / Proveedor</h3>
                     <div class="space-y-2">
-                        <input type="text" id="new-prov-nombre" placeholder="Nombre (Ej: Tienda Rosa)" class="w-full border p-2 rounded-lg text-sm focus:outline-indigo-500">
-                        <input type="email" id="new-prov-email" placeholder="Correo del Proveedor (Ej: elbinchavez@gmail.com)" class="w-full border p-2 rounded-lg text-sm focus:outline-indigo-500">
-                        <button onclick="crearProveedor()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold text-xs uppercase tracking-wider">Crear y Habilitar</button>
+                        <input type="text" id="new-prov-nombre" placeholder="Nombre (Ej: Tienda Rosa)" 
+                               class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
+                        <input type="email" id="new-prov-email" placeholder="Correo de acceso (Ej: elbin@gmail.com)" 
+                               class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
+                        <button onclick="crearProveedor()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest mt-1">Crear y Habilitar</button>
                     </div>
                 </div>
                 <div id="lista-proveedores" class="space-y-3"></div>
             </section>
 
-            <section id="sec-config" class="tab-view hidden bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
-                <h3 class="font-bold text-gray-700 text-sm uppercase border-b pb-2">Panel de Administración</h3>
-                <p class="text-xs text-gray-500">Crea los accesos para tus proveedores en Firebase Auth.</p>
-                <div class="space-y-2 bg-gray-50 p-3 rounded-lg border">
-                    <p class="text-xs font-bold text-gray-600">🔑 Crear Credencial de Acceso para Proveedor:</p>
-                    <input type="email" id="auth-email" placeholder="Correo del Proveedor" class="w-full border p-2 rounded-lg text-sm bg-white">
-                    <input type="password" id="auth-pass" placeholder="Contraseña de acceso" class="w-full border p-2 rounded-lg text-sm bg-white">
-                    <button onclick="crearUsuarioAuth()" class="w-full bg-emerald-600 text-white py-2 rounded-lg font-bold text-xs uppercase">Registrar en Firebase</button>
+            <section id="sec-config" class="tab-view hidden bg-gray-900 border border-gray-800/80 p-4 rounded-2xl shadow-sm space-y-4">
+                <div>
+                    <h3 class="font-bold text-white text-xs uppercase tracking-wider border-b border-gray-800 pb-2">Seguridad de la Plataforma</h3>
+                    <p class="text-[11px] text-gray-500 mt-1">Crea accesos directos para la nube de Firebase Auth de tus proveedores.</p>
+                </div>
+                <div class="space-y-2 bg-gray-950 p-4 rounded-xl border border-gray-800/60">
+                    <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">🔑 Registrar Acceso en Firebase:</p>
+                    <input type="email" id="auth-email" placeholder="Correo del Proveedor" class="w-full bg-gray-900 border border-gray-800 p-2.5 rounded-lg text-sm text-gray-200">
+                    <input type="password" id="auth-pass" placeholder="Contraseña de acceso" class="w-full bg-gray-900 border border-gray-800 p-2.5 rounded-lg text-sm text-gray-200">
+                    <button onclick="crearUsuarioAuth()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-lg font-bold text-xs uppercase tracking-widest mt-1">Registrar Credencial</button>
                 </div>
             </section>
         </main>
     </div>
 
-    <div id="modal-transaccion" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-xl">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 id="modal-titulo" class="font-bold text-gray-800 text-sm">Registrar Movimiento</h3>
-                <button onclick="closeModal()" class="text-gray-400 font-bold text-xl">&times;</button>
+    <div id="modal-transaccion" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 id="modal-titulo" class="font-bold text-white text-xs uppercase tracking-widest">Registrar Movimiento</h3>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-white font-bold text-xl transition-colors">&times;</button>
             </div>
             <input type="hidden" id="modal-tipo-entidad">
             <input type="hidden" id="modal-entidad-id">
             <input type="hidden" id="modal-tipo-movimiento">
+            
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Monto ($)</label>
-                <input type="number" id="modal-monto" step="0.01" placeholder="0.00" class="w-full border p-3 rounded-xl text-lg font-bold focus:outline-indigo-500">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Monto en Efectivo ($)</label>
+                <input type="number" id="modal-monto" step="0.01" placeholder="0.00" 
+                       class="w-full bg-gray-950 border border-gray-800 p-3.5 rounded-xl text-2xl font-bold text-emerald-400 text-center focus:outline-none focus:border-emerald-500">
             </div>
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Detalle / Ref. Factura</label>
-                <input type="text" id="modal-detalle" placeholder="Ej: Factura #245" class="w-full border p-2 rounded-lg text-sm focus:outline-indigo-500">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Detalle o Ref. de Factura</label>
+                <input type="text" id="modal-detalle" placeholder="Ej: Factura #245" 
+                       class="w-full bg-gray-950 border border-gray-800 p-2.5 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
             </div>
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Adjuntar Comprobante (Foto o PDF)</label>
-                <input type="file" id="modal-file" accept="image/*,application/pdf" class="w-full text-xs text-gray-500">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Adjuntar Evidencia (Foto / PDF)</label>
+                <input type="file" id="modal-file" accept="image/*,application/pdf" class="w-full text-xs text-gray-500 bg-gray-950 p-2 rounded-xl border border-gray-800">
             </div>
-            <button onclick="ejecutarMovimiento()" id="btn-guardar-mov" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-sm shadow-md">
-                💾 Guardar Registro
+            <button onclick="ejecutarMovimiento()" id="btn-guardar-mov" 
+                    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest shadow-md transition-colors">
+                💾 Guardar en Base de Datos
             </button>
         </div>
     </div>
 
     <script>
-        // Configuración oficial de tu app
+        // Configuración de tu base de datos
         const firebaseConfig = {
             apiKey: "AIzaSyDt-C5k_4Kf_9umGl06LC9WN2EV97O83jc",
             authDomain: "creditoscorinto.firebaseapp.com",
@@ -126,36 +144,35 @@
             measurementId: "G-G0EDE75NPX"
         };
 
-        // Inicializar Firebase en modo Global Estable
+        // Inicializar SDK en modo global estable sin módulos
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        // Parámetros de seguridad de Frank
-        const CORREO_ADMIN = "minisupertonita@gmail.com"; 
+        // Parámetros Maestros (Coloca aquí el correo corporativo/admin de tu empresa)
+        const CORREO_ADMIN = "frankreyes@gmail.com"; 
         const PIN_ADMIN = "199818"; 
-        const CONTRASENA_OCULTA_ADMIN = "FrankMaster2026*"; // Esta es la clave asignada en tu captura
+        const CONTRASENA_OCULTA_ADMIN = "FrankMaster2026*"; 
         const PIN_BAJA = "1234";
 
         let esAdmin = false;
 
-        // --- SISTEMA DE INICIO DE SESIÓN INTEGRADO POR PIN ---
+        // --- SISTEMA DE INICIO DE SESIÓN POR PIN ---
         async function iniciarSesionPorPin() {
             const pinIngresado = document.getElementById('login-pin').value.trim();
             if(!pinIngresado) return alert("Escribe el código, parce.");
 
             if (pinIngresado !== PIN_ADMIN) {
-                alert("❌ Código PIN de Administrador incorrecto.");
+                alert("❌ Código PIN incorrecto.");
                 return;
             }
 
             try {
-                // Ejecución directa garantizada
                 await auth.signInWithEmailAndPassword(CORREO_ADMIN, CONTRASENA_OCULTA_ADMIN);
                 document.getElementById('login-pin').value = "";
             } catch (error) {
-                alert("Error de Firebase:\n" + error.message + "\n\nVerifica que la contraseña del usuario en tu consola sea exactamente: " + CONTRASENA_OCULTA_ADMIN);
+                alert("Error de Acceso:\n" + error.message + "\n\nVerifica que la contraseña en Firebase sea exactamente: " + CONTRASENA_OCULTA_ADMIN);
             }
         }
 
@@ -163,12 +180,17 @@
             auth.signOut();
         }
 
-        // --- OBSERVADOR DE ESTADO DE ACCESO ---
+        // --- MANEJADOR DE ESTADO EN TIEMPO REAL ---
         auth.onAuthStateChanged((user) => {
+            const loginView = document.getElementById('view-login');
+            const appView = document.getElementById('view-app');
+
             if (user) {
                 esAdmin = (user.email.toLowerCase() === CORREO_ADMIN.toLowerCase());
-                document.getElementById('view-login').classList.remove('active');
-                document.getElementById('view-app').classList.add('active');
+                
+                if(loginView) { loginView.classList.remove('active'); loginView.style.display = 'none'; }
+                if(appView) { appView.classList.add('active'); appView.style.display = 'block'; }
+                
                 document.getElementById('app-user-title').innerText = esAdmin ? "⚡ Frank (Admin)" : `🚚 PROV: ${user.email}`;
 
                 if (esAdmin) {
@@ -185,18 +207,26 @@
                 }
             } else {
                 esAdmin = false;
-                document.getElementById('view-app').classList.remove('active');
-                document.getElementById('view-login').classList.add('active');
+                if(appView) { appView.classList.remove('active'); appView.style.display = 'none'; }
+                if(loginView) { loginView.classList.add('active'); loginView.style.display = 'flex'; }
             }
         });
 
+        // --- MANEJADOR DE PESTAÑAS TIPO TARGETAS ---
         function switchTab(tabId) {
             document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
             document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+            
             if(esAdmin) {
-                document.querySelectorAll('#admin-tabs button').forEach(b => { b.classList.remove('bg-white', 'text-indigo-700'); b.classList.add('text-white'); });
+                document.querySelectorAll('#admin-tabs button').forEach(b => { 
+                    b.classList.remove('bg-indigo-600', 'text-white'); 
+                    b.classList.add('text-gray-400'); 
+                });
                 const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-                if(activeBtn) { activeBtn.classList.remove('text-white'); activeBtn.classList.add('bg-white', 'text-indigo-700'); }
+                if(activeBtn) { 
+                    activeBtn.classList.remove('text-gray-400'); 
+                    activeBtn.classList.add('bg-indigo-600', 'text-white'); 
+                }
             }
         }
 
@@ -205,10 +235,9 @@
             const pass = document.getElementById('auth-pass').value;
             if(!email || pass.length < 6) return alert("Completa los datos de proveedor (Clave min 6 caracteres).");
             try {
-                // Crea el usuario sin desloguear la sesión actual
-                const secundaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
-                await secundaryApp.auth().createUserWithEmailAndPassword(email, pass);
-                await secundaryApp.delete();
+                const secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
+                await secondaryApp.auth().createUserWithEmailAndPassword(email, pass);
+                await secondaryApp.delete();
                 alert(`¡Listo! Credencial creada para ${email}.`);
                 document.getElementById('auth-email').value = "";
                 document.getElementById('auth-pass').value = "";
@@ -270,19 +299,17 @@
         function escucharHistorial(entidadId, contenedorHistorial) {
             db.collection("movimientos_credito").where("entidad_id", "==", entidadId).orderBy("fecha", "desc").onSnapshot((snapshot) => {
                 contenedorHistorial.innerHTML = "";
-                if(snapshot.empty) { contenedorHistorial.innerHTML = `<p class="text-[10px] text-gray-400 italic">Sin movimientos.</p>`; return; }
+                if(snapshot.empty) { contenedorHistorial.innerHTML = `<p class="text-[10px] text-gray-600 italic">Sin movimientos registrados.</p>`; return; }
                 snapshot.forEach(docSnap => {
                     const h = docSnap.data();
                     const dateStr = h.fecha ? new Date(h.fecha).toLocaleDateString() : '';
-                    const linkAdjunto = h.url_adjunto ? `<a href="${h.url_adjunto}" target="_blank" class="underline ml-1 font-bold text-indigo-600">📎 Ver Adjunto</a>` : '';
+                    const linkAdjunto = h.url_adjunto ? `<a href="${h.url_adjunto}" target="_blank" class="underline ml-1 font-bold text-indigo-400">📎 Comprobante</a>` : '';
                     const div = document.createElement('div');
-                    div.className = `flex justify-between items-center text-xs py-1 border-b border-gray-100 ${h.tipo_movimiento === 'factura' ? 'text-red-600' : 'text-emerald-600'}`;
+                    div.className = `flex justify-between items-center text-[11px] py-1.5 border-b border-gray-900 ${h.tipo_movimiento === 'factura' ? 'text-red-400' : 'text-emerald-400'}`;
                     div.innerHTML = `<span>${dateStr} - ${h.detalle} ${linkAdjunto}</span><span class="font-bold">${h.tipo_movimiento === 'factura' ? '+' : '-'}$${h.monto.toFixed(2)}</span>`;
                     contenedorHistorial.appendChild(div);
                 });
-            }, error => {
-                console.log("Esperando index...");
-            });
+            }, error => { console.log("Indexando..."); });
         }
 
         function abrirModalTransaccion(tipoEntidad, id, tipoMovimiento, nombre) {
@@ -325,28 +352,47 @@
                     });
                 });
                 closeModal();
-            } catch (e) { alert("Error: " + e); } finally { btn.innerText = "💾 Guardar Registro"; btn.disabled = false; }
+            } catch (e) { alert("Error: " + e); } finally { btn.innerText = "💾 Guardar en Base de Datos"; btn.disabled = false; }
         }
 
         async function ejecutarBaja(tipoEntidad, id, nombre) {
             const pin = prompt(`🔒 PIN de seguridad para dar de baja a:\n"${nombre}"`);
-            if (pin === PIN_BAJA) { await db.collection(tipoEntidad).doc(id).update({ activo: false }); alert("Dado de baja."); } 
+            if (pin === PIN_BAJA) { await db.collection(tipoEntidad).doc(id).update({ activo: false }); alert("Dado de baja con éxito."); } 
             else if (pin !== null) { alert("❌ PIN Incorrecto."); }
         }
 
+        // --- CREACIÓN DE TARJETAS UI PREMIUM DARK ---
         function crearTarjetaUI(tipoEntidad, id, nombre, saldo, modoCompleto) {
-            const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3 relative";
-            const botonBaja = modoCompleto ? `<button onclick="ejecutarBaja('${tipoEntidad}', '${id}', '${nombre}')" class="absolute top-3 right-3 text-[10px] text-gray-300 hover:text-red-500 font-bold uppercase">🚫 Baja</button>` : '';
-            const botonAbono = (tipoEntidad === 'proveedores' && !modoCompleto) ? '' : `<button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'abono', '${nombre}')" class="flex-1 bg-emerald-50 text-emerald-700 py-2 rounded-lg text-xs font-bold border border-emerald-200 hover:bg-emerald-100">💵 Abonar</button>`;
+            const div = document.createElement('div'); 
+            div.className = "bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-md space-y-4 relative";
+            
+            const botonBaja = modoCompleto ? `<button onclick="ejecutarBaja('${tipoEntidad}', '${id}', '${nombre}')" class="absolute top-4 right-4 text-[9px] text-gray-600 hover:text-red-400 font-bold uppercase tracking-widest transition-colors">🚫 Baja</button>` : '';
+            const botonAbono = (tipoEntidad === 'proveedores' && !modoCompleto) ? '' : `<button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'abono', '${nombre}')" class="flex-1 bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-400 py-3 rounded-xl text-xs font-bold border border-emerald-900/50 transition-colors">💵 Registrar Abono</button>`;
 
             div.innerHTML = `
                 ${botonBaja}
-                <div class="flex justify-between items-start pr-12">
-                    <div><h4 class="font-bold text-gray-800 text-base mb-0.5">${nombre}</h4><span class="text-[9px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-mono">${id.substring(0,6)}...</span></div>
-                    <div class="text-right"><span class="text-[10px] text-gray-400 block uppercase font-bold tracking-wider">Deuda</span><span class="text-lg font-black ${saldo > 0 ? 'text-red-600' : 'text-gray-700'}">$${saldo.toFixed(2)}</span></div>
+                <div class="flex justify-between items-start pr-10">
+                    <div>
+                        <h4 class="font-black text-gray-100 text-base tracking-wide mb-0.5">${nombre}</h4>
+                        <span class="text-[9px] bg-gray-950 border border-gray-850 text-gray-500 px-2 py-0.5 rounded-md font-mono">${id.substring(0,6)}...</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[9px] text-gray-500 block uppercase font-bold tracking-widest">Saldo Deuda</span>
+                        <span class="text-xl font-black ${saldo > 0 ? 'text-red-400' : 'text-gray-400'}">$${saldo.toFixed(2)}</span>
+                    </div>
                 </div>
-                <div class="flex gap-2"><button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'factura', '${nombre}')" class="flex-1 bg-red-50 text-red-700 py-2 rounded-lg text-xs font-bold border border-red-200 hover:bg-red-100">📄 + Factura</button>${botonAbono}</div>
-                <div class="bg-gray-50 p-3 rounded-lg border border-gray-100"><p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Historial</p><div class="historial-box max-h-24 overflow-y-auto space-y-1"><p class="text-[10px] text-gray-400 italic">Cargando...</p></div></div>
+                
+                <div class="flex gap-3">
+                    <button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'factura', '${nombre}')" class="flex-1 bg-red-950/40 hover:bg-red-900/40 text-red-400 py-3 rounded-xl text-xs font-bold border border-red-900/50 transition-colors">📄 + Factura</button>
+                    ${botonAbono}
+                </div>
+                
+                <div class="bg-gray-950 border border-gray-850 p-3 rounded-xl">
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">Historial de Operaciones</p>
+                    <div class="historial-box max-h-28 overflow-y-auto space-y-1.5 pr-1">
+                        <p class="text-[10px] text-gray-600 italic">Cargando datos...</p>
+                    </div>
+                </div>
             `;
             return div;
         }
