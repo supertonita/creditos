@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Créditos</title>
+    <title>Control de Créditos - Mini Súper Toñita</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
@@ -62,10 +62,12 @@
             <section id="sec-clientes" class="tab-view hidden space-y-4">
                 <div class="bg-gray-900 border border-gray-800/80 p-4 rounded-2xl shadow-sm">
                     <h3 class="font-bold text-gray-400 mb-2.5 text-[10px] uppercase tracking-widest">Nuevo Cliente a Crédito</h3>
-                    <div class="flex gap-2">
+                    <div class="space-y-2">
                         <input type="text" id="new-cli-nombre" placeholder="Nombre o apodo del cliente" 
-                               class="flex-1 bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
-                        <button onclick="crearCliente()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 rounded-xl font-black text-lg transition-colors">+</button>
+                               class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
+                        <input type="tel" id="new-cli-telefono" placeholder="WhatsApp (Ej: 50688888888)" 
+                               class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
+                        <button onclick="crearCliente()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Añadir Cliente</button>
                     </div>
                 </div>
                 <div id="lista-clientes" class="space-y-3"></div>
@@ -78,6 +80,8 @@
                         <input type="text" id="new-prov-nombre" placeholder="Nombre de Distribuidora (Ej: Tienda Rosa)" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
                         <input type="email" id="new-prov-email" placeholder="Correo del proveedor (Ej: elbinchavez@gmail.com)" 
+                               class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
+                        <input type="tel" id="new-prov-telefono" placeholder="Número de WhatsApp (Ej: 50677777777)" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
                         <input type="password" pattern="\d*" inputmode="numeric" id="new-prov-pin" placeholder="Asignar PIN de acceso (Ej: 123456)" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
@@ -92,7 +96,7 @@
                     <h3 class="font-bold text-white text-xs uppercase tracking-wider border-b border-gray-800 pb-2">Seguridad de la Plataforma</h3>
                     <p class="text-[11px] text-gray-500 mt-1">Soporte técnico de Firebase.</p>
                 </div>
-                <p class="text-xs text-gray-400 italic">Los proveedores ahora se gestionan y se les da acceso directamente con su número PIN desde la pestaña de Provs.</p>
+                <p class="text-xs text-gray-400 italic">Los proveedores se gestionan y se les da acceso directamente con su número PIN desde la pestaña de Provs.</p>
             </section>
         </main>
     </div>
@@ -149,11 +153,10 @@
         const CONTRASENA_OCULTA_ADMIN = "FrankMaster2026*"; 
         const PIN_BAJA = "1234";
 
-        // Estados de la sesión local
         let esAdmin = false;
         let proveedorLogueadoEmail = null;
+        let cacheMovimientos = {};
 
-        // --- SISTEMA DE LOGIN INTELIGENTE POR PIN ---
         async function iniciarSesionPorPin() {
             const pinIngresado = document.getElementById('login-pin').value.trim();
             const btn = document.getElementById('btn-login');
@@ -162,7 +165,6 @@
             btn.innerText = "⏳ Verificando PIN...";
             btn.disabled = true;
 
-            // CASO 1: Es el Administrador Supremo (Tú)
             if (pinIngresado === PIN_ADMIN) {
                 try {
                     await auth.signInWithEmailAndPassword(CORREO_ADMIN, CONTRASENA_OCULTA_ADMIN);
@@ -176,7 +178,6 @@
                 return;
             }
 
-            // CASO 2: Es un Proveedor (Búsqueda por PIN en la base de datos)
             try {
                 const snapshot = await db.collection("proveedores")
                                        .where("pin_acceso", "==", pinIngresado)
@@ -185,20 +186,18 @@
                                        .get();
 
                 if (snapshot.empty) {
-                    alert("❌ Código PIN no registrado o inactivo.");
+                    alert("❌ Código PIN no registrado.");
                     btn.innerText = "🚀 Entrar al Sistema";
                     btn.disabled = false;
                     return;
                 }
 
-                // Si lo encuentra, guardamos su email en sesión local y simulamos su entorno seguro
                 const datosProv = snapshot.docs[0].data();
                 proveedorLogueadoEmail = datosProv.email_proveedor.toLowerCase();
                 esAdmin = false;
 
-                // Forzamos el cambio visual de la App de inmediato
-                 document.getElementById('login-pin').value = "";
-                 renderizarEntornoApp(false, datosProv.nombre, proveedorLogueadoEmail);
+                document.getElementById('login-pin').value = "";
+                renderizarEntornoApp(false, datosProv.nombre, proveedorLogueadoEmail);
 
             } catch (error) {
                 alert("Error de conexión: " + error.message);
@@ -219,7 +218,6 @@
             });
         }
 
-        // Monitoreo de cambios de Auth (Para cuando tú te logueas como Admin)
         auth.onAuthStateChanged((user) => {
             if (user && user.email.toLowerCase() === CORREO_ADMIN.toLowerCase()) {
                 esAdmin = true;
@@ -228,7 +226,6 @@
             }
         });
 
-        // --- RENDERIZADO CONTROLADO DE PANTALLAS ---
         function renderizarEntornoApp(isAdminRole, nombreMostrar, emailRole) {
             document.getElementById('view-login').classList.remove('active');
             document.getElementById('view-login').style.display = 'none';
@@ -270,19 +267,21 @@
 
         async function crearCliente() {
             const nombre = document.getElementById('new-cli-nombre').value.trim();
+            const telefono = document.getElementById('new-cli-telefono').value.trim();
             if(!nombre) return alert("Escribe el nombre.");
-            await db.collection("clientes").add({ nombre, saldo: 0, activo: true, fecha: new Date().toISOString() });
+            await db.collection("clientes").add({ nombre, telefono: telefono || "", saldo: 0, activo: true, fecha: new Date().toISOString() });
             document.getElementById('new-cli-nombre').value = "";
+            document.getElementById('new-cli-telefono').value = "";
         }
 
-        // --- REESTRUCTURACIÓN DE CREACIÓN DE PROVEEDORES CON SU PIN ---
         async function crearProveedor() {
             const nombre = document.getElementById('new-prov-nombre').value.trim();
             const email = document.getElementById('new-prov-email').value.trim().toLowerCase();
+            const telefono = document.getElementById('new-prov-telefono').value.trim();
             const pin = document.getElementById('new-prov-pin').value.trim();
             const btn = document.getElementById('btn-crear-prov');
 
-            if(!nombre || !email || !pin) return alert("Por favor complete todos los datos, incluyendo el PIN de acceso.");
+            if(!nombre || !email || !pin) return alert("Por favor complete todos los datos requeridos.");
             
             btn.innerText = "⏳ Guardando...";
             btn.disabled = true;
@@ -290,16 +289,18 @@
             try {
                 await db.collection("proveedores").add({ 
                     nombre: nombre, 
-                    email_proveedor: email, 
-                    pin_acceso: pin, // Se guarda el PIN directo en el documento
+                    email_proveedor: email,
+                    telefono_proveedor: telefono || "", // Se guarda el teléfono limpio
+                    pin_acceso: pin, 
                     saldo: 0, 
                     activo: true, 
                     fecha: new Date().toISOString() 
                 });
                 
-                alert(`🚀 Distribuidora "${nombre}" habilitada. PIN de acceso: ${pin}`);
+                alert(`🚀 Distribuidora "${nombre}" habilitada con éxito.`);
                 document.getElementById('new-prov-nombre').value = ""; 
                 document.getElementById('new-prov-email').value = "";
+                document.getElementById('new-prov-telefono').value = "";
                 document.getElementById('new-prov-pin').value = "";
             } catch (error) {
                 alert("Error al guardar proveedor: " + error.message);
@@ -314,7 +315,7 @@
                 const contenedor = document.getElementById('lista-clientes'); contenedor.innerHTML = "";
                 snapshot.forEach(docSnap => {
                     const id = docSnap.id; const item = docSnap.data();
-                    const tarjeta = crearTarjetaUI('clientes', id, item.nombre, item.saldo, esAdmin);
+                    const tarjeta = crearTarjetaUI('clientes', id, item.nombre, item.saldo, esAdmin, item.telefono || "");
                     contenedor.appendChild(tarjeta);
                     escucharHistorial(id, tarjeta.querySelector('.historial-box'));
                 });
@@ -326,7 +327,7 @@
                 const contenedor = document.getElementById('lista-proveedores'); contenedor.innerHTML = "";
                 snapshot.forEach(docSnap => {
                     const id = docSnap.id; const item = docSnap.data();
-                    const tarjeta = crearTarjetaUI('proveedores', id, item.nombre, item.saldo, true);
+                    const tarjeta = crearTarjetaUI('proveedores', id, item.nombre, item.saldo, true, item.telefono_proveedor || "");
                     contenedor.appendChild(tarjeta);
                     escucharHistorial(id, tarjeta.querySelector('.historial-box'));
                 });
@@ -338,7 +339,7 @@
                 const contenedor = document.getElementById('lista-proveedores'); contenedor.innerHTML = "";
                 snapshot.forEach(docSnap => {
                     const id = docSnap.id; const item = docSnap.data();
-                    const tarjeta = crearTarjetaUI('proveedores', id, item.nombre, item.saldo, false);
+                    const tarjeta = crearTarjetaUI('proveedores', id, item.nombre, item.saldo, false, item.telefono_proveedor || "");
                     contenedor.appendChild(tarjeta);
                     escucharHistorial(id, tarjeta.querySelector('.historial-box'));
                 });
@@ -348,9 +349,13 @@
         function escucharHistorial(entidadId, contenedorHistorial) {
             db.collection("movimientos_credito").where("entidad_id", "==", entidadId).orderBy("fecha", "desc").onSnapshot((snapshot) => {
                 contenedorHistorial.innerHTML = "";
+                cacheMovimientos[entidadId] = [];
+                
                 if(snapshot.empty) { contenedorHistorial.innerHTML = `<p class="text-[10px] text-gray-600 italic">Sin movimientos registrados.</p>`; return; }
                 snapshot.forEach(docSnap => {
                     const h = docSnap.data();
+                    cacheMovimientos[entidadId].push(h);
+
                     const dateStr = h.fecha ? new Date(h.fecha).toLocaleDateString() : '';
                     const linkAdjunto = h.url_adjunto ? `<a href="${h.url_adjunto}" target="_blank" class="underline ml-1 font-bold text-indigo-400">📎 Archivo</a>` : '';
                     
@@ -362,7 +367,7 @@
                     div.innerHTML = `<span>${dateStr} - ${h.detalle} ${linkAdjunto}</span><span class="font-bold">${signo}$${h.monto.toFixed(2)}</span>`;
                     contenedorHistorial.appendChild(div);
                 });
-            }, error => { console.log("Indexando..."); });
+            });
         }
 
         function abrirModalTransaccion(tipoEntidad, id, tipoMovimiento, nombre) {
@@ -372,7 +377,7 @@
             if(tipoEntidad === 'clientes') {
                 accionTexto = tipoMovimiento === 'factura' ? '➕ Nueva Factura (Suma Deuda)' : '💵 Registrar Abono (Resta Deuda)';
             } else {
-                accionTexto = tipoMovimiento === 'factura' ? '➕ Recibir Factura (Suma Tu Deuda)' : '💵 Pagar a Proveedor (Resta Tu Deuda)';
+                accionTexto = tipoMovimiento === 'factura' ? '➕ Recibir Factura (Suma Tu Deuda)' : '💵 Registrar Pago (Resta Tu Deuda)';
             }
 
             document.getElementById('modal-titulo').innerText = `${accionTexto} ➔ ${nombre}`;
@@ -406,13 +411,7 @@
                 await db.runTransaction(async (transaction) => {
                     const sfDoc = await transaction.get(entidadDocRef);
                     let saldoActual = sfDoc.data().saldo || 0;
-                    let nuevoSaldo = saldoActual;
-
-                    if (tipoEntidad === 'clientes') {
-                        nuevoSaldo = tipoMovimiento === 'factura' ? saldoActual + monto : saldoActual - monto;
-                    } else {
-                        nuevoSaldo = tipoMovimiento === 'factura' ? saldoActual + monto : saldoActual - monto;
-                    }
+                    let nuevoSaldo = tipoMovimiento === 'factura' ? saldoActual + monto : saldoActual - monto;
 
                     transaction.update(entidadDocRef, { saldo: nuevoSaldo });
                     
@@ -437,7 +436,54 @@
             else if (pin !== null) { alert("❌ PIN Incorrecto."); }
         }
 
-        function crearTarjetaUI(tipoEntidad, id, nombre, saldo, modoCompleto) {
+        // --- CORRECCIÓN: WHATSAPP RECONOCE EL NÚMERO DIRECTO DE LA BASE DE DATOS ---
+        function enviarWhatsApp(nombre, saldo, tipoEntidad, numeroTelefono) {
+            let mensaje = "";
+            if(tipoEntidad === 'clientes') {
+                mensaje = `Hola ${nombre}, te saludamos de Mini Súper Toñita. Te informamos que tu saldo actual de cuenta crédito es de *$${saldo.toFixed(2)}*. ¡Gracias por tu preferencia!`;
+            } else {
+                mensaje = `Hola, te saludamos de Mini Súper Toñita. Queremos informarle que registramos una actualización en nuestro estado de cuenta. Nuestro saldo actual con ustedes es de *$${saldo.toFixed(2)}*. Quedamos al día.`;
+            }
+            
+            // Si tiene número guardado, lo pone en la URL; si no, abre el compartir general como antes.
+            let url = "";
+            if(numeroTelefono) {
+                // Elimina espacios o caracteres raros por si acaso
+                const numLimpio = numeroTelefono.replace(/[^0-9]/g, "");
+                url = `https://api.whatsapp.com/send?phone=${numLimpio}&text=${encodeURIComponent(mensaje)}`;
+            } else {
+                url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`;
+            }
+            window.open(url, '_blank');
+        }
+
+        function exportarExcel(nombre, saldo, entidadId, tipoEntidad) {
+            const lista = cacheMovimientos[entidadId] || [];
+            if(lista.length === 0) return alert("No hay movimientos registrados para exportar.");
+
+            let csvContent = "\uFEFF"; 
+            csvContent += `Reporte de Estado de Cuenta: ${nombre}\n`;
+            csvContent += `Tipo: ${tipoEntidad === 'clientes' ? 'Cliente a Credito' : 'Distribuidora / Proveedor'}\n`;
+            csvContent += `Saldo Actual Total: $${saldo.toFixed(2)}\n\n`;
+            csvContent += "Fecha,Detalle,Tipo Movimiento,Monto ($)\n";
+
+            lista.forEach(m => {
+                const fechaFmt = new Date(m.fecha).toLocaleDateString();
+                const tipoMov = m.tipo_movimiento === 'factura' ? 'Factura (+)' : 'Abono / Pago (-)';
+                csvContent += `"${fechaFmt}","${m.detalle}","${tipoMov}","${m.monto.toFixed(2)}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Estado_Cuenta_${nombre.replace(/ /g, "_")}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function crearTarjetaUI(tipoEntidad, id, nombre, saldo, modoCompleto, telefono) {
             const div = document.createElement('div'); 
             div.className = "bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-md space-y-4 relative";
             
@@ -445,9 +491,6 @@
             
             let txtFactura = tipoEntidad === 'clientes' ? '📄 + Factura' : '📄 + Recibir Factura';
             let txtAbono = tipoEntidad === 'clientes' ? '💵 Registrar Abono' : '💵 Registrar Pago';
-
-            // Un proveedor viendo su propia tarjeta NO ve el botón de "Registrar Pago" (eso solo lo haces tú cuando le das dinero)
-            const botonAbono = (tipoEntidad === 'proveedores' && !modoCompleto) ? '' : `<button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'abono', '${nombre}')" class="flex-1 bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-400 py-3 rounded-xl text-xs font-bold border border-emerald-900/50 transition-colors">${txtAbono}</button>`;
 
             div.innerHTML = `
                 ${botonBaja}
@@ -464,7 +507,16 @@
                 
                 <div class="flex gap-3">
                     <button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'factura', '${nombre}')" class="flex-1 bg-red-950/40 hover:bg-red-900/40 text-red-400 py-3 rounded-xl text-xs font-bold border border-red-900/50 transition-colors">${txtFactura}</button>
-                    ${botonAbono}
+                    <button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'abono', '${nombre}')" class="flex-1 bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-400 py-3 rounded-xl text-xs font-bold border border-emerald-900/50 transition-colors">${txtAbono}</button>
+                </div>
+
+                <div class="flex gap-2 border-t border-gray-850 pt-3">
+                    <button onclick="enviarWhatsApp('${nombre}', ${saldo}, '${tipoEntidad}', '${telefono}')" class="flex-1 bg-gray-950 hover:bg-gray-800 text-emerald-500 font-bold text-[10px] uppercase py-2 px-3 border border-emerald-950 rounded-xl transition-colors flex items-center justify-center gap-1">
+                        💬 Notificar WhatsApp
+                    </button>
+                    <button onclick="exportarExcel('${nombre}', ${saldo}, '${id}', '${tipoEntidad}')" class="flex-1 bg-gray-950 hover:bg-gray-800 text-indigo-400 font-bold text-[10px] uppercase py-2 px-3 border border-indigo-950 rounded-xl transition-colors flex items-center justify-center gap-1">
+                        📊 Guardar Excel
+                    </button>
                 </div>
                 
                 <div class="bg-gray-950 border border-gray-850 p-3 rounded-xl">
