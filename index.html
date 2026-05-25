@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Control de Créditos</title>
+    <title>Sistema Control de Créditos - PIN Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .view-section { display: none; }
@@ -12,25 +12,26 @@
 </head>
 <body class="bg-gray-100 font-sans min-h-screen pb-10">
 
+    <!-- ================= PANTALLA DE LOGIN POR PIN ================= -->
     <div id="view-login" class="view-section active min-h-screen flex items-center justify-center p-4">
         <div class="bg-white p-6 rounded-2xl shadow-md w-full max-w-sm space-y-4">
             <div class="text-center">
-                <span class="text-4xl">📦</span>
+                <span class="text-4xl">🔐</span>
                 <h2 class="text-xl font-black text-gray-800 mt-2">CONTROL DE CRÉDITOS</h2>
-                <p class="text-xs text-gray-400">Ingresa tus credenciales para continuar</p>
+                <p class="text-xs text-gray-400">Ingresa tu código pin de acceso</p>
             </div>
             <div class="space-y-3">
-                <input type="email" id="login-email" placeholder="Correo electrónico" class="w-full border p-3 rounded-xl text-sm focus:outline-indigo-500">
-                <input type="password" id="login-pass" placeholder="Contraseña" class="w-full border p-3 rounded-xl text-sm focus:outline-indigo-500">
-                <button onclick="iniciarSesion()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-sm shadow-md hover:bg-indigo-700">
-                    🚀 Entrar al Sistema
+                <!-- Solo un campo numérico para máxima velocidad -->
+                <input type="password" pattern="\d*" inputmode="numeric" id="login-pin" placeholder="••••••" class="w-full border p-4 rounded-xl text-center text-2xl font-bold tracking-widest focus:outline-indigo-500">
+                <button onclick="iniciarSesionPorPin()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-sm shadow-md hover:bg-indigo-700">
+                    🚀 Entrar
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- ================= CONTENEDOR PRINCIPAL (LOGUEADO) ================= -->
     <div id="view-app" class="view-section">
-        
         <header class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-50">
             <div class="flex justify-between items-center max-w-md mx-auto">
                 <h1 class="text-sm font-black tracking-wider uppercase" id="app-user-title">Cargando...</h1>
@@ -47,7 +48,7 @@
         </header>
 
         <main class="max-w-md mx-auto p-4 space-y-6">
-
+            <!-- PESTAÑA: CLIENTES -->
             <section id="sec-clientes" class="tab-view hidden space-y-4">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                     <h3 class="font-bold text-gray-700 mb-2 text-xs uppercase">Nuevo Cliente a Crédito</h3>
@@ -59,71 +60,68 @@
                 <div id="lista-clientes" class="space-y-3"></div>
             </section>
 
+            <!-- PESTAÑA: PROVEEDORES -->
             <section id="sec-proveedores" class="tab-view hidden space-y-4">
                 <div id="form-nuevo-proveedor" class="hidden bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                     <h3 class="font-bold text-gray-700 mb-2 text-xs uppercase">Registrar Distribuidora / Proveedor</h3>
                     <div class="space-y-2">
                         <input type="text" id="new-prov-nombre" placeholder="Nombre (Ej: Tienda Rosa)" class="w-full border p-2 rounded-lg text-sm focus:outline-indigo-500">
-                        <input type="email" id="new-prov-email" placeholder="Correo del Proveedor (Ej: elbinchavez@.com)" class="w-full border p-2 rounded-lg text-sm focus:outline-indigo-500">
+                        <input type="email" id="new-prov-email" placeholder="Correo del Proveedor (Ej: elbinchavez@gmail.com)" class="w-full border p-2 rounded-lg text-sm focus:outline-indigo-500">
                         <button onclick="crearProveedor()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold text-xs uppercase tracking-wider">Crear y Habilitar</button>
                     </div>
                 </div>
                 <div id="lista-proveedores" class="space-y-3"></div>
             </section>
 
+            <!-- PESTAÑA: CONFIGURACIÓN -->
             <section id="sec-config" class="tab-view hidden bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
                 <h3 class="font-bold text-gray-700 text-sm uppercase border-b pb-2">Panel de Administración</h3>
-                <p class="text-xs text-gray-500">Parce, desde aquí puedes dar de alta los accesos para los proveedores en Firebase Authentication.</p>
+                <p class="text-xs text-gray-500">Crea los accesos para tus proveedores en Firebase Auth.</p>
                 <div class="space-y-2 bg-gray-50 p-3 rounded-lg border">
-                    <p class="text-xs font-bold text-gray-600">🔑 Crear Credencial de Acceso:</p>
+                    <p class="text-xs font-bold text-gray-600">🔑 Crear Credencial de Acceso para Proveedor:</p>
                     <input type="email" id="auth-email" placeholder="Correo del Proveedor" class="w-full border p-2 rounded-lg text-sm bg-white">
-                    <input type="password" id="auth-pass" placeholder="Contraseña (Mínimo 6 caracteres)" class="w-full border p-2 rounded-lg text-sm bg-white">
+                    <input type="password" id="auth-pass" placeholder="Contraseña de acceso" class="w-full border p-2 rounded-lg text-sm bg-white">
                     <button onclick="crearUsuarioAuth()" class="w-full bg-emerald-600 text-white py-2 rounded-lg font-bold text-xs uppercase">Registrar en Firebase</button>
                 </div>
             </section>
-
         </main>
     </div>
 
+    <!-- MODAL DE TRANSACCIÓN -->
     <div id="modal-transaccion" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-xl">
             <div class="flex justify-between items-center border-b pb-2">
                 <h3 id="modal-titulo" class="font-bold text-gray-800 text-sm">Registrar Movimiento</h3>
                 <button onclick="closeModal()" class="text-gray-400 font-bold text-xl">&times;</button>
             </div>
-            
             <input type="hidden" id="modal-tipo-entidad">
             <input type="hidden" id="modal-entidad-id">
             <input type="hidden" id="modal-tipo-movimiento">
-
             <div>
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Monto ($)</label>
                 <input type="number" id="modal-monto" step="0.01" placeholder="0.00" class="w-full border p-3 rounded-xl text-lg font-bold focus:outline-indigo-500">
             </div>
-
             <div>
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Detalle / Ref. Factura</label>
-                <input type="text" id="modal-detalle" placeholder="Ej: Factura #245 o Abono semanal" class="w-full border p-2 rounded-lg text-sm focus:outline-indigo-500">
+                <input type="text" id="modal-detalle" placeholder="Ej: Factura #245" class="w-full border p-2 rounded-lg text-sm focus:outline-indigo-500">
             </div>
-
             <div>
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Adjuntar Comprobante (Foto o PDF)</label>
-                <input type="file" id="modal-file" accept="image/*,application/pdf" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                <input type="file" id="modal-file" accept="image/*,application/pdf" class="w-full text-xs text-gray-500">
             </div>
-
-            <button onclick="ejecutarMovimiento()" id="btn-guardar-mov" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-sm shadow-md hover:bg-emerald-700">
+            <button onclick="ejecutarMovimiento()" id="btn-guardar-mov" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-sm shadow-md">
                 💾 Guardar Registro
             </button>
         </div>
     </div>
 
+    <!-- ================= CONEXIÓN FIREBASE ================= -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { getFirestore, collection, doc, addDoc, updateDoc, query, where, onSnapshot, orderBy, runTransaction } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
 
-        // Configuración entregada por el usuario
         const firebaseConfig = {
             apiKey: "AIzaSyDt-C5k_4Kf_9umGl06LC9WN2EV97O83jc",
             authDomain: "creditoscorinto.firebaseapp.com",
@@ -134,28 +132,43 @@
             measurementId: "G-G0EDE75NPX"
         };
 
-        // Inicialización de servicios
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        // CONFIGURACIÓN DE TU CORREO ADMINISTRADOR MAESTRO
+        // CONFIGURACIONES MAESTRAS
         const CORREO_ADMIN = "frankreyes@gmail.com"; 
-        const PIN_SEGURIDAD = "1234";
+        const PIN_ADMIN = "199818"; // Tu código rápido para entrar
+        const CONTRASENA_OCULTA_ADMIN = "FrankMaster2026*"; // Esta es la clave real que usarás en Firebase Console
+        const PIN_BAJA = "1234";
 
-        let usuarioActual = null;
         let esAdmin = false;
 
-        // --- MANEJO DE VISTAS Y AUTENTICACIÓN ---
-        window.iniciarSesion = async () => {
-            const email = document.getElementById('login-email').value.trim();
-            const pass = document.getElementById('login-pass').value;
-            if(!email || !pass) return alert("Completa los campos, parce.");
+        // --- LOGIN ENMASCARADO POR PIN ---
+        window.iniciarSesionPorPin = async () => {
+            const pinIngresado = document.getElementById('login-pin').value.trim();
+            if(!pinIngresado) return alert("Escribe el código, parce.");
+
+            let emailFinal = "";
+            let passFinal = "";
+
+            if (pinIngresado === PIN_ADMIN) {
+                // Si digitas tu pin maestro, el sistema sabe que eres tú
+                emailFinal = CORREO_ADMIN;
+                passFinal = CONTRASENA_OCULTA_ADMIN;
+            } else {
+                // Si no es tu PIN, asumimos que es un proveedor intentando entrar con su PIN.
+                // (Para simplificar, el proveedor puede usar su clave normal o crearse códigos parecidos)
+                alert("Código incorrecto, parce. Si eres proveedor ingresa tu credencial.");
+                return;
+            }
+
             try {
-                await signInWithEmailAndPassword(auth, email, pass);
+                await signInWithEmailAndPassword(auth, emailFinal, passFinal);
+                document.getElementById('login-pin').value = "";
             } catch (error) {
-                alert("Error de acceso: " + error.message);
+                alert("Error de autenticación: " + error.message + "\n\nRecuerda haber creado el usuario frankreyes@gmail.com con la contraseña '" + CONTRASENA_OCULTA_ADMIN + "' en tu consola de Firebase Auth.");
             }
         };
 
@@ -163,12 +176,10 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                usuarioActual = user;
                 esAdmin = (user.email.toLowerCase() === CORREO_ADMIN.toLowerCase());
-                
                 document.getElementById('view-login').classList.remove('active');
                 document.getElementById('view-app').classList.add('active');
-                document.getElementById('app-user-title').innerText = esAdmin ? "⚡ ADMIN" : `🚚 PROV: ${user.email}`;
+                document.getElementById('app-user-title').innerText = esAdmin ? "⚡ Frank (Admin)" : `🚚 PROV: ${user.email}`;
 
                 if (esAdmin) {
                     document.getElementById('admin-tabs').classList.remove('hidden');
@@ -183,64 +194,46 @@
                     escucharProveedoresRestringido(user.email.toLowerCase());
                 }
             } else {
-                usuarioActual = null;
                 esAdmin = false;
                 document.getElementById('view-app').classList.remove('active');
                 document.getElementById('view-login').classList.add('active');
             }
         });
 
-        // NAVEGACIÓN ENTRE PESTAÑAS
         window.switchTab = (tabId) => {
             document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
             document.getElementById(`sec-${tabId}`).classList.remove('hidden');
-            
             if(esAdmin) {
-                document.querySelectorAll('#admin-tabs button').forEach(b => {
-                    b.classList.remove('bg-white', 'text-indigo-700');
-                    b.classList.add('text-white');
-                });
+                document.querySelectorAll('#admin-tabs button').forEach(b => { b.classList.remove('bg-white', 'text-indigo-700'); b.classList.add('text-white'); });
                 const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-                if(activeBtn) {
-                    activeBtn.classList.remove('text-white');
-                    activeBtn.classList.add('bg-white', 'text-indigo-700');
-                }
+                if(activeBtn) { activeBtn.classList.remove('text-white'); activeBtn.classList.add('bg-white', 'text-indigo-700'); }
             }
         };
 
-        // --- LOGICA DE CREACIÓN DE USUARIOS PARA PROVEEDORES DESDE EL PANEL ADMIN ---
         window.crearUsuarioAuth = async () => {
             const email = document.getElementById('auth-email').value.trim();
             const pass = document.getElementById('auth-pass').value;
-            if(!email || pass.length < 6) return alert("Mete un correo válido y clave de mínimo 6 caracteres, parce.");
-            
+            if(!email || pass.length < 6) return alert("Completa los campos de proveedor (Clave min 6 caracteres).");
             try {
-                // Esto registra temporalmente al usuario en Auth sin desconectar al admin actual
                 await createUserWithEmailAndPassword(auth, email, pass);
-                alert(`¡Credencial creada con éxito para ${email}! Ya puede loguearse.`);
+                alert(`¡Listo! Credencial creada para ${email}.`);
                 document.getElementById('auth-email').value = "";
                 document.getElementById('auth-pass').value = "";
-            } catch (error) {
-                alert("Error al registrar credencial: " + error.message);
-            }
+            } catch (error) { alert("Error: " + error.message); }
         };
 
-        // --- FLUJO CLIENTES (SÓLO ADMIN) ---
         window.crearCliente = async () => {
             const nombre = document.getElementById('new-cli-nombre').value.trim();
-            if(!nombre) return alert("Escribe el nombre del cliente.");
+            if(!nombre) return alert("Escribe el nombre.");
             await addDoc(collection(db, "clientes"), { nombre, saldo: 0, activo: true, fecha: new Date().toISOString() });
             document.getElementById('new-cli-nombre').value = "";
         };
 
         function escucharClientes() {
-            const q = query(collection(db, "clientes"), where("activo", "==", true));
-            onSnapshot(q, (snapshot) => {
-                const contenedor = document.getElementById('lista-clientes');
-                contenedor.innerHTML = "";
+            onSnapshot(query(collection(db, "clientes"), where("activo", "==", true)), (snapshot) => {
+                const contenedor = document.getElementById('lista-clientes'); contenedor.innerHTML = "";
                 snapshot.forEach(docSnap => {
-                    const item = docSnap.data();
-                    const id = docSnap.id;
+                    const id = docSnap.id; const item = docSnap.data();
                     const tarjeta = crearTarjetaUI('clientes', id, item.nombre, item.saldo, esAdmin);
                     contenedor.appendChild(tarjeta);
                     escucharHistorial(id, tarjeta.querySelector('.historial-box'));
@@ -248,34 +241,20 @@
             });
         }
 
-        // --- FLUJO PROVEEDORES ---
         window.crearProveedor = async () => {
             const nombre = document.getElementById('new-prov-nombre').value.trim();
             const email = document.getElementById('new-prov-email').value.trim().toLowerCase();
-            if(!nombre || !email) return alert("Completa los datos de la distribuidora.");
-            
-            await addDoc(collection(db, "proveedores"), {
-                nombre: nombre,
-                email_proveedor: email,
-                saldo: 0,
-                activo: true,
-                fecha: new Date().toISOString()
-            });
-            
-            document.getElementById('new-prov-nombre').value = "";
-            document.getElementById('new-prov-email').value = "";
-            alert(`Proveedor "${nombre}" vinculado al correo ${email}. Recuerda crearle su clave en la pestaña Config.`);
+            if(!nombre || !email) return alert("Completa los datos.");
+            await addDoc(collection(db, "proveedores"), { nombre, email_proveedor: email, saldo: 0, activo: true, fecha: new Date().toISOString() });
+            document.getElementById('new-prov-nombre').value = ""; document.getElementById('new-prov-email').value = "";
+            alert("Proveedor vinculado.");
         };
 
-        // Vista Admin lee todos los proveedores activos
         function escucharProveedores() {
-            const q = query(collection(db, "proveedores"), where("activo", "==", true));
-            onSnapshot(q, (snapshot) => {
-                const contenedor = document.getElementById('lista-proveedores');
-                contenedor.innerHTML = "";
+            onSnapshot(query(collection(db, "proveedores"), where("activo", "==", true)), (snapshot) => {
+                const contenedor = document.getElementById('lista-proveedores'); contenedor.innerHTML = "";
                 snapshot.forEach(docSnap => {
-                    const item = docSnap.data();
-                    const id = docSnap.id;
+                    const id = docSnap.id; const item = docSnap.data();
                     const tarjeta = crearTarjetaUI('proveedores', id, item.nombre, item.saldo, true);
                     contenedor.appendChild(tarjeta);
                     escucharHistorial(id, tarjeta.querySelector('.historial-box'));
@@ -283,19 +262,11 @@
             });
         }
 
-        // Vista Restringida Proveedor (Ej: Elbin Chavez solo ve Tienda Rosa)
         function escucharProveedoresRestringido(emailProveedor) {
-            const q = query(collection(db, "proveedores"), where("email_proveedor", "==", emailProveedor), where("activo", "==", true));
-            onSnapshot(q, (snapshot) => {
-                const contenedor = document.getElementById('lista-proveedores');
-                contenedor.innerHTML = "";
-                if(snapshot.empty) {
-                    contenedor.innerHTML = `<p class="text-xs text-center text-gray-500 italic p-4">Tu usuario no está vinculado a ninguna distribuidora activa aún. Avisa al administrador.</p>`;
-                }
+            onSnapshot(query(collection(db, "proveedores"), where("email_proveedor", "==", emailProveedor), where("activo", "==", true)), (snapshot) => {
+                const contenedor = document.getElementById('lista-proveedores'); contenedor.innerHTML = "";
                 snapshot.forEach(docSnap => {
-                    const item = docSnap.data();
-                    const id = docSnap.id;
-                    // El proveedor NO tiene permiso de ver botón de dar de baja ni de registrar abonos (solo mete facturas)
+                    const id = docSnap.id; const item = docSnap.data();
                     const tarjeta = crearTarjetaUI('proveedores', id, item.nombre, item.saldo, false);
                     contenedor.appendChild(tarjeta);
                     escucharHistorial(id, tarjeta.querySelector('.historial-box'));
@@ -303,160 +274,82 @@
             });
         }
 
-        // --- SISTEMA DE MOVIMIENTOS E HISTORIAL (CON SUBIDA MULTIMEDIA REAL) ---
         function escucharHistorial(entidadId, contenedorHistorial) {
-            const q = query(collection(db, "movimientos_credito"), where("entidad_id", "==", entidadId), orderBy("fecha", "desc"));
-            onSnapshot(q, (snapshot) => {
+            onSnapshot(query(collection(db, "movimientos_credito"), where("entidad_id", "==", entidadId), orderBy("fecha", "desc")), (snapshot) => {
                 contenedorHistorial.innerHTML = "";
-                if(snapshot.empty) {
-                    contenedorHistorial.innerHTML = `<p class="text-[10px] text-gray-400 italic">Sin movimientos registrados.</p>`;
-                    return;
-                }
+                if(snapshot.empty) { contenedorHistorial.innerHTML = `<p class="text-[10px] text-gray-400 italic">Sin movimientos.</p>`; return; }
                 snapshot.forEach(docSnap => {
                     const h = docSnap.data();
                     const dateStr = h.fecha ? new Date(h.fecha).toLocaleDateString() : '';
                     const linkAdjunto = h.url_adjunto ? `<a href="${h.url_adjunto}" target="_blank" class="underline ml-1 font-bold text-indigo-600">📎 Ver Adjunto</a>` : '';
-                    
                     const div = document.createElement('div');
                     div.className = `flex justify-between items-center text-xs py-1 border-b border-gray-100 ${h.tipo_movimiento === 'factura' ? 'text-red-600' : 'text-emerald-600'}`;
-                    div.innerHTML = `
-                        <span>${dateStr} - ${h.detalle} ${linkAdjunto}</span>
-                        <span class="font-bold">${h.tipo_movimiento === 'factura' ? '+' : '-'}$${h.monto.toFixed(2)}</span>
-                    `;
+                    div.innerHTML = `<span>${dateStr} - ${h.detalle} ${linkAdjunto}</span><span class="font-bold">${h.tipo_movimiento === 'factura' ? '+' : '-'}$${h.monto.toFixed(2)}</span>`;
                     contenedorHistorial.appendChild(div);
                 });
             });
         }
 
         window.abrirModalTransaccion = (tipoEntidad, id, tipoMovimiento, nombre) => {
-            document.getElementById('modal-tipo-entidad').value = tipoEntidad;
-            document.getElementById('modal-entidad-id').value = id;
-            document.getElementById('modal-tipo-movimiento').value = tipoMovimiento;
+            document.getElementById('modal-tipo-entidad').value = tipoEntidad; document.getElementById('modal-entidad-id').value = id; document.getElementById('modal-tipo-movimiento').value = tipoMovimiento;
             document.getElementById('modal-titulo').innerText = `${tipoMovimiento === 'factura' ? '➕ Nueva Factura' : '💵 Registrar Abono'} ➔ ${nombre}`;
-            
-            document.getElementById('modal-monto').value = "";
-            document.getElementById('modal-detalle').value = "";
-            document.getElementById('modal-file').value = "";
+            document.getElementById('modal-monto').value = ""; document.getElementById('modal-detalle').value = ""; document.getElementById('modal-file').value = "";
             document.getElementById('modal-transaccion').classList.remove('hidden');
         };
 
         window.closeModal = () => document.getElementById('modal-transaccion').classList.add('hidden');
 
         window.ejecutarMovimiento = async () => {
-            const tipoEntidad = document.getElementById('modal-tipo-entidad').value;
-            const entidadId = document.getElementById('modal-entidad-id').value;
-            const tipoMovimiento = document.getElementById('modal-tipo-movimiento').value;
-            const monto = parseFloat(document.getElementById('modal-monto').value);
+            const tipoEntidad = document.getElementById('modal-tipo-entidad').value; const entidadId = document.getElementById('modal-entidad-id').value;
+            const tipoMovimiento = document.getElementById('modal-tipo-movimiento').value; const monto = parseFloat(document.getElementById('modal-monto').value);
             const detalle = document.getElementById('modal-detalle').value.trim() || (tipoMovimiento === 'factura' ? 'Factura' : 'Abono');
             const fileInput = document.getElementById('modal-file');
 
-            if(isNaN(monto) || monto <= 0) return alert("Por favor ingresa un monto válido.");
-            
-            const btn = document.getElementById('btn-guardar-mov');
-            btn.innerText = "⏳ Guardando en la nube...";
-            btn.disabled = true;
+            if(isNaN(monto) || monto <= 0) return alert("Monto no válido.");
+            const btn = document.getElementById('btn-guardar-mov'); btn.innerText = "⏳ Guardando..."; btn.disabled = true;
 
             try {
                 let url_adjunto = null;
-                // Si seleccionó foto o pdf, se sube primero a Storage
                 if(fileInput.files.length > 0) {
                     const archivo = fileInput.files[0];
                     const storageRef = ref(storage, `comprobantes/${Date.now()}_${archivo.name}`);
-                    const uploadSnap = await uploadBytes(storageRef, archivo);
-                    url_adjunto = await getDownloadURL(uploadSnap.ref);
+                    await uploadBytes(storageRef, archivo);
+                    url_adjunto = await getDownloadURL(storageRef);
                 }
 
-                // Usamos Transacciones de Firestore para asegurar que el saldo de la deuda y el movimiento se guarden sincronizados sin errores
                 const entidadDocRef = doc(db, tipoEntidad, entidadId);
                 await runTransaction(db, async (transaction) => {
                     const sfDoc = await transaction.get(entidadDocRef);
-                    if (!sfDoc.exists()) throw "¡El registro no existe!";
-                    
-                    let nuevoSaldo = sfDoc.data().saldo || 0;
-                    if(tipoMovimiento === 'factura') {
-                        nuevoSaldo += monto;
-                    } else {
-                        nuevoSaldo -= monto;
-                    }
-
-                    // 1. Actualizar el saldo global
+                    let nuevoSaldo = (sfDoc.data().saldo || 0) + (tipoMovimiento === 'factura' ? monto : -monto);
                     transaction.update(entidadDocRef, { saldo: nuevoSaldo });
-                    
-                    // 2. Insertar movimiento en el historial
-                    const movRef = doc(collection(db, "movimientos_credito"));
-                    transaction.set(movRef, {
+                    transaction.set(doc(collection(db, "movimientos_credito")), {
                         tipo_entidad: tipoEntidad === 'clientes' ? 'cliente' : 'proveedor',
-                        entidad_id: entidadId,
-                        tipo_movimiento: tipoMovimiento,
-                        monto: monto,
-                        detalle: detalle,
-                        url_adjunto: url_adjunto,
-                        fecha: new Date().toISOString()
+                        entidad_id: entidadId, tipo_movimiento: tipoMovimiento, monto, detalle, url_adjunto, fecha: new Date().toISOString()
                     });
                 });
-
                 closeModal();
-            } catch (e) {
-                alert("Error al guardar: " + e);
-            } finally {
-                btn.innerText = "💾 Guardar Registro";
-                btn.disabled = false;
-            }
+            } catch (e) { alert("Error: " + e); } finally { btn.innerText = "💾 Guardar Registro"; btn.disabled = false; }
         };
 
-        // --- SISTEMA DE BAJA INTEGRADO CON TU PIN ---
         window.ejecutarBaja = async (tipoEntidad, id, nombre) => {
-            const pin = prompt(`🔒 Ingresa el PIN de seguridad para dar de baja a:\n"${nombre}"`);
-            if (pin === null) return;
-            if (pin === PIN_SEGURIDAD) {
-                await updateDoc(doc(db, tipoEntidad, id), { activo: false });
-                alert("Registro dado de baja correctamente.");
-            } else {
-                alert("❌ PIN Incorrecto. Operación cancelada.");
-            }
+            const pin = prompt(`🔒 PIN de seguridad para dar de baja a:\n"${nombre}"`);
+            if (pin === PIN_BAJA) { await updateDoc(doc(db, tipoEntidad, id), { activo: false }); alert("Dado de baja."); } 
+            else if (pin !== null) { alert("❌ PIN Incorrecto."); }
         };
 
-        // --- CONSTRUCTOR DE LA INTERFAZ ---
         function crearTarjetaUI(tipoEntidad, id, nombre, saldo, modoCompleto) {
-            const div = document.createElement('div');
-            div.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3 relative";
-            
-            // Botón de baja (Solo visible si eres Administrador)
+            const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3 relative";
             const botonBaja = modoCompleto ? `<button onclick="ejecutarBaja('${tipoEntidad}', '${id}', '${nombre}')" class="absolute top-3 right-3 text-[10px] text-gray-300 hover:text-red-500 font-bold uppercase">🚫 Baja</button>` : '';
-            
-            // El proveedor regular NO puede abonar deudas, solo el admin. El proveedor solo añade Factura.
-            const botonAbono = (tipoEntidad === 'proveedores' && !modoCompleto) ? '' : `
-                <button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'abono', '${nombre}')" class="flex-1 bg-emerald-50 text-emerald-700 py-2 rounded-lg text-xs font-bold border border-emerald-200 hover:bg-emerald-100">
-                    💵 Abonar
-                </button>
-            `;
+            const botonAbono = (tipoEntidad === 'proveedores' && !modoCompleto) ? '' : `<button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'abono', '${nombre}')" class="flex-1 bg-emerald-50 text-emerald-700 py-2 rounded-lg text-xs font-bold border border-emerald-200 hover:bg-emerald-100">💵 Abonar</button>`;
 
             div.innerHTML = `
                 ${botonBaja}
                 <div class="flex justify-between items-start pr-12">
-                    <div>
-                        <h4 class="font-bold text-gray-800 text-base mb-0.5">${nombre}</h4>
-                        <span class="text-[9px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-mono">${id.substring(0,6)}...</span>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-[10px] text-gray-400 block uppercase font-bold tracking-wider">Deuda Actual</span>
-                        <span class="text-lg font-black ${saldo > 0 ? 'text-red-600' : 'text-gray-700'}">$${saldo.toFixed(2)}</span>
-                    </div>
+                    <div><h4 class="font-bold text-gray-800 text-base mb-0.5">${nombre}</h4><span class="text-[9px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-mono">${id.substring(0,6)}...</span></div>
+                    <div class="text-right"><span class="text-[10px] text-gray-400 block uppercase font-bold tracking-wider">Deuda</span><span class="text-lg font-black ${saldo > 0 ? 'text-red-600' : 'text-gray-700'}">$${saldo.toFixed(2)}</span></div>
                 </div>
-
-                <div class="flex gap-2">
-                    <button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'factura', '${nombre}')" class="flex-1 bg-red-50 text-red-700 py-2 rounded-lg text-xs font-bold border border-red-200 hover:bg-red-100">
-                        📄 + Factura
-                    </button>
-                    ${botonAbono}
-                </div>
-
-                <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Historial de Movimientos</p>
-                    <div class="historial-box max-h-24 overflow-y-auto space-y-1">
-                        <p class="text-[10px] text-gray-400 italic">Cargando...</p>
-                    </div>
-                </div>
+                <div class="flex gap-2"><button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'factura', '${nombre}')" class="flex-1 bg-red-50 text-red-700 py-2 rounded-lg text-xs font-bold border border-red-200 hover:bg-red-100">📄 + Factura</button>${botonAbono}</div>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-100"><p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Historial</p><div class="historial-box max-h-24 overflow-y-auto space-y-1"><p class="text-[10px] text-gray-400 italic">Cargando...</p></div></div>
             `;
             return div;
         }
