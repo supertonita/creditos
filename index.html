@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Créditos - Premium Dark Mode</title>
+    <title>Control de Créditos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
@@ -76,11 +76,11 @@
                 <div id="form-nuevo-proveedor" class="hidden bg-gray-900 border border-gray-800/80 p-4 rounded-2xl shadow-sm">
                     <h3 class="font-bold text-gray-400 mb-2.5 text-[10px] uppercase tracking-widest">Registrar Distribuidora / Proveedor</h3>
                     <div class="space-y-2">
-                        <input type="text" id="new-prov-nombre" placeholder="Nombre (Ej: Tienda Rosa)" 
+                        <input type="text" id="new-prov-nombre" placeholder="Nombre de Distribuidora (Ej: Tienda Rosa)" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
-                        <input type="email" id="new-prov-email" placeholder="Correo de acceso (Ej: elbin@gmail.com)" 
+                        <input type="email" id="new-prov-email" placeholder="Correo del proveedor (Ej: elbin@gmail.com)" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
-                        <button onclick="crearProveedor()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest mt-1">Crear y Habilitar</button>
+                        <button onclick="crearProveedor()" id="btn-crear-prov" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest mt-1 transition-colors">Crear y Habilitar</button>
                     </div>
                 </div>
                 <div id="lista-proveedores" class="space-y-3"></div>
@@ -150,7 +150,7 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        // Parámetros Maestros (Coloca aquí el correo corporativo/admin de tu empresa)
+        // Parámetros Maestros
         const CORREO_ADMIN = "minisupertonita@gmail.com"; 
         const PIN_ADMIN = "199818"; 
         const CONTRASENA_OCULTA_ADMIN = "FrankMaster2026*"; 
@@ -251,6 +251,37 @@
             document.getElementById('new-cli-nombre').value = "";
         }
 
+        // --- FUNCIÓN ACCIÓN PROVEEDOR CORREGIDA ---
+        async function crearProveedor() {
+            const nombre = document.getElementById('new-prov-nombre').value.trim();
+            const email = document.getElementById('new-prov-email').value.trim().toLowerCase();
+            const btn = document.getElementById('btn-crear-prov');
+
+            if(!nombre || !email) return alert("Por favor complete los datos de la distribuidora.");
+            
+            btn.innerText = "⏳ Creando...";
+            btn.disabled = true;
+
+            try {
+                await db.collection("proveedores").add({ 
+                    nombre: nombre, 
+                    email_proveedor: email, 
+                    saldo: 0, 
+                    activo: true, 
+                    fecha: new Date().toISOString() 
+                });
+                
+                alert(`🚀 Proveedor "${nombre}" registrado y habilitado con éxito.`);
+                document.getElementById('new-prov-nombre').value = ""; 
+                document.getElementById('new-prov-email').value = "";
+            } catch (error) {
+                alert("Error al guardar proveedor: " + error.message);
+            } finally {
+                btn.innerText = "Crear y Habilitar";
+                btn.disabled = false;
+            }
+        }
+
         function escucharClientes() {
             db.collection("clientes").where("activo", "==", true).onSnapshot((snapshot) => {
                 const contenedor = document.getElementById('lista-clientes'); contenedor.innerHTML = "";
@@ -261,15 +292,6 @@
                     escucharHistorial(id, tarjeta.querySelector('.historial-box'));
                 });
             });
-        }
-
-        async function crearProveedor() {
-            const nombre = document.getElementById('new-prov-nombre').value.trim();
-            const email = document.getElementById('new-prov-email').value.trim().toLowerCase();
-            if(!nombre || !email) return alert("Completa los datos.");
-            await db.collection("proveedores").add({ nombre, email_proveedor: email, saldo: 0, activo: true, fecha: new Date().toISOString() });
-            document.getElementById('new-prov-nombre').value = ""; document.getElementById('new-prov-email').value = "";
-            alert("Proveedor vinculado.");
         }
 
         function escucharProveedores() {
@@ -303,10 +325,15 @@
                 snapshot.forEach(docSnap => {
                     const h = docSnap.data();
                     const dateStr = h.fecha ? new Date(h.fecha).toLocaleDateString() : '';
-                    const linkAdjunto = h.url_adjunto ? `<a href="${h.url_adjunto}" target="_blank" class="underline ml-1 font-bold text-indigo-400">📎 Comprobante</a>` : '';
+                    const linkAdjunto = h.url_adjunto ? `<a href="${h.url_adjunto}" target="_blank" class="underline ml-1 font-bold text-indigo-400">📎 Archivo</a>` : '';
+                    
+                    // Colores según tipo de movimiento
+                    let colorTexto = h.tipo_movimiento === 'factura' ? 'text-red-400' : 'text-emerald-400';
+                    let signo = h.tipo_movimiento === 'factura' ? '+' : '-';
+
                     const div = document.createElement('div');
-                    div.className = `flex justify-between items-center text-[11px] py-1.5 border-b border-gray-900 ${h.tipo_movimiento === 'factura' ? 'text-red-400' : 'text-emerald-400'}`;
-                    div.innerHTML = `<span>${dateStr} - ${h.detalle} ${linkAdjunto}</span><span class="font-bold">${h.tipo_movimiento === 'factura' ? '+' : '-'}$${h.monto.toFixed(2)}</span>`;
+                    div.className = `flex justify-between items-center text-[11px] py-1.5 border-b border-gray-900 ${colorTexto}`;
+                    div.innerHTML = `<span>${dateStr} - ${h.detalle} ${linkAdjunto}</span><span class="font-bold">${signo}$${h.monto.toFixed(2)}</span>`;
                     contenedorHistorial.appendChild(div);
                 });
             }, error => { console.log("Indexando..."); });
@@ -314,16 +341,28 @@
 
         function abrirModalTransaccion(tipoEntidad, id, tipoMovimiento, nombre) {
             document.getElementById('modal-tipo-entidad').value = tipoEntidad; document.getElementById('modal-entidad-id').value = id; document.getElementById('modal-tipo-movimiento').value = tipoMovimiento;
-            document.getElementById('modal-titulo').innerText = `${tipoMovimiento === 'factura' ? '➕ Nueva Factura' : '💵 Registrar Abono'} ➔ ${nombre}`;
+            
+            // Texto del encabezado dinámico según si es cliente o distribuidor
+            let accionTexto = "";
+            if(tipoEntidad === 'clientes') {
+                accionTexto = tipoMovimiento === 'factura' ? '➕ Nueva Factura (Suma Deuda)' : '💵 Registrar Abono (Resta Deuda)';
+            } else {
+                accionTexto = tipoMovimiento === 'factura' ? '➕ Recibir Factura (Suma Tu Deuda)' : '💵 Pagar a Proveedor (Resta Tu Deuda)';
+            }
+
+            document.getElementById('modal-titulo').innerText = `${accionTexto} ➔ ${nombre}`;
             document.getElementById('modal-monto').value = ""; document.getElementById('modal-detalle').value = ""; document.getElementById('modal-file').value = "";
             document.getElementById('modal-transaccion').classList.remove('hidden');
         }
 
         function closeModal() { document.getElementById('modal-transaccion').classList.add('hidden'); }
 
+        // --- MATEMÁTICA EN TRANSACCIÓN ADAPTADA PARA PROVEEDORES ---
         async function ejecutarMovimiento() {
-            const tipoEntidad = document.getElementById('modal-tipo-entidad').value; const entidadId = document.getElementById('modal-entidad-id').value;
-            const tipoMovimiento = document.getElementById('modal-tipo-movimiento').value; const monto = parseFloat(document.getElementById('modal-monto').value);
+            const tipoEntidad = document.getElementById('modal-tipo-entidad').value; 
+            const entidadId = document.getElementById('modal-entidad-id').value;
+            const tipoMovimiento = document.getElementById('modal-tipo-movimiento').value; 
+            const monto = parseFloat(document.getElementById('modal-monto').value);
             const detalle = document.getElementById('modal-detalle').value.trim() || (tipoMovimiento === 'factura' ? 'Factura' : 'Abono');
             const fileInput = document.getElementById('modal-file');
 
@@ -342,13 +381,29 @@
                 const entidadDocRef = db.collection(tipoEntidad).doc(entidadId);
                 await db.runTransaction(async (transaction) => {
                     const sfDoc = await transaction.get(entidadDocRef);
-                    let nuevoSaldo = (sfDoc.data().saldo || 0) + (tipoMovimiento === 'factura' ? monto : -monto);
+                    let saldoActual = sfDoc.data().saldo || 0;
+                    let nuevoSaldo = saldoActual;
+
+                    // LÓGICA DE SALDOS (Clientes vs Proveedores)
+                    if (tipoEntidad === 'clientes') {
+                        // Factura suma deuda al cliente, Abono le resta deuda
+                        nuevoSaldo = tipoMovimiento === 'factura' ? saldoActual + monto : saldoActual - monto;
+                    } else {
+                        // Factura suma TU deuda con el Proveedor, Abono/Pago RESTA lo que le debes
+                        nuevoSaldo = tipoMovimiento === 'factura' ? saldoActual + monto : saldoActual - monto;
+                    }
+
                     transaction.update(entidadDocRef, { saldo: nuevoSaldo });
                     
                     const nuevoMovRef = db.collection("movimientos_credito").doc();
                     transaction.set(nuevoMovRef, {
                         tipo_entidad: tipoEntidad === 'clientes' ? 'cliente' : 'proveedor',
-                        entidad_id: entidadId, tipo_movimiento: tipoMovimiento, monto, detalle, url_adjunto, fecha: new Date().toISOString()
+                        entidad_id: entidadId, 
+                        tipo_movimiento: tipoMovimiento, 
+                        monto: monto, 
+                        detalle: detalle, 
+                        url_adjunto: url_adjunto, 
+                        fecha: new Date().toISOString()
                     });
                 });
                 closeModal();
@@ -367,7 +422,12 @@
             div.className = "bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-md space-y-4 relative";
             
             const botonBaja = modoCompleto ? `<button onclick="ejecutarBaja('${tipoEntidad}', '${id}', '${nombre}')" class="absolute top-4 right-4 text-[9px] text-gray-600 hover:text-red-400 font-bold uppercase tracking-widest transition-colors">🚫 Baja</button>` : '';
-            const botonAbono = (tipoEntidad === 'proveedores' && !modoCompleto) ? '' : `<button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'abono', '${nombre}')" class="flex-1 bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-400 py-3 rounded-xl text-xs font-bold border border-emerald-900/50 transition-colors">💵 Registrar Abono</button>`;
+            
+            // Nombre de botones dinámicos según el rol
+            let txtFactura = tipoEntidad === 'clientes' ? '📄 + Factura' : '📄 + Recibir Factura';
+            let txtAbono = tipoEntidad === 'clientes' ? '💵 Registrar Abono' : '💵 Registrar Pago';
+
+            const botonAbono = (tipoEntidad === 'proveedores' && !modoCompleto) ? '' : `<button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'abono', '${nombre}')" class="flex-1 bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-400 py-3 rounded-xl text-xs font-bold border border-emerald-900/50 transition-colors">${txtAbono}</button>`;
 
             div.innerHTML = `
                 ${botonBaja}
@@ -377,13 +437,13 @@
                         <span class="text-[9px] bg-gray-950 border border-gray-850 text-gray-500 px-2 py-0.5 rounded-md font-mono">${id.substring(0,6)}...</span>
                     </div>
                     <div class="text-right">
-                        <span class="text-[9px] text-gray-500 block uppercase font-bold tracking-widest">Saldo Deuda</span>
+                        <span class="text-[9px] text-gray-500 block uppercase font-bold tracking-widest">${tipoEntidad === 'clientes' ? 'Saldo Deuda' : 'Le Debes'}</span>
                         <span class="text-xl font-black ${saldo > 0 ? 'text-red-400' : 'text-gray-400'}">$${saldo.toFixed(2)}</span>
                     </div>
                 </div>
                 
                 <div class="flex gap-3">
-                    <button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'factura', '${nombre}')" class="flex-1 bg-red-950/40 hover:bg-red-900/40 text-red-400 py-3 rounded-xl text-xs font-bold border border-red-900/50 transition-colors">📄 + Factura</button>
+                    <button onclick="abrirModalTransaccion('${tipoEntidad}', '${id}', 'factura', '${nombre}')" class="flex-1 bg-red-950/40 hover:bg-red-900/40 text-red-400 py-3 rounded-xl text-xs font-bold border border-red-900/50 transition-colors">${txtFactura}</button>
                     ${botonAbono}
                 </div>
                 
