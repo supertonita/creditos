@@ -12,11 +12,13 @@
     <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-storage-compat.js"></script>
 
     <style>
-        body { background-color: #d8d8d8; } /* Gray 950 */
-        .view-section { display: none; }
-        .view-section.active { display: block; }
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+       body { background-color: #e7e8e9; color: #000000; font-family: sans-serif; }
+.bg-gray-900 { background-color: #c7c6c6 !important; border: 1px solid #e5e7eb !important; }
+.bg-gray-950 { background-color: #eeebeb !important; border: 1px solid #e5e7eb !important; }
+h1, h2, h3, h4, span, p, label { color: #000000 !important; }
+.text-gray-500 { color: #2c2c2c !important; }
+.text-gray-400 { color: #020202 !important; }
+input { border: 1px solid #afafb1 !important; color: #fafafa !important; }
     </style>
 </head>
 <body class="text-white-100 font-sans min-h-screen pb-10">
@@ -25,7 +27,7 @@
         <div class="bg-gray-900 border border-gray-800 p-8 rounded-3xl shadow-2xl w-full max-w-sm space-y-6 text-center">
             <div>
                 <div class="mx-auto w-16 h-16 bg-indigo-950/50 border border-indigo-500/30 rounded-2xl flex items-center justify-center text-2xl shadow-inner shadow-indigo-500/10">
-                    🔐
+                    
                 </div>
                 <h2 class="text-xl font-black tracking-wider text-white mt-4 uppercase">Súper Toñita Créditos</h2>
                 <p class="text-[11px] text-gray-500 mt-1 uppercase tracking-widest">Ingresa tu código PIN de Acceso</p>
@@ -87,7 +89,7 @@
                     <div class="space-y-2 pt-1">
                         <input type="text" id="new-prov-nombre" placeholder="Nombre de Distribuidora" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
-                        <input type="email" id="new-prov-email" placeholder=" (nombre@cliente.com)" 
+                        <input type="email" id="new-prov-email" placeholder=" nombre@cliente.com" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
                         <input type="tel" id="new-prov-telefono" placeholder="Número de WhatsApp" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
@@ -444,7 +446,7 @@
                     });
                 });
                 closeModal();
-            } catch (e) { alert("Error: " + e); } finally { btn.innerText = "💾 Guardar en Base de Datos"; btn.disabled = false; }
+            } catch (e) { alert("Error: " + e); } finally { btn.innerText = " Guardar en Base de Datos"; btn.disabled = false; }
         }
 
         async function ejecutarBaja(tipoEntidad, id, nombre) {
