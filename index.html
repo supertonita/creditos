@@ -12,14 +12,14 @@
     <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-storage-compat.js"></script>
 
     <style>
-        body { background-color: #030712; } /* Gray 950 */
+        body { background-color: #d8d8d8; } /* Gray 950 */
         .view-section { display: none; }
         .view-section.active { display: block; }
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
-<body class="text-gray-100 font-sans min-h-screen pb-10">
+<body class="text-white-100 font-sans min-h-screen pb-10">
 
     <div id="view-login" class="view-section active min-h-screen flex items-center justify-center p-4">
         <div class="bg-gray-900 border border-gray-800 p-8 rounded-3xl shadow-2xl w-full max-w-sm space-y-6 text-center">
@@ -35,25 +35,25 @@
                        class="w-full bg-gray-950 border border-gray-800 p-4 rounded-2xl text-center text-3xl font-bold tracking-widest text-indigo-400 focus:outline-none focus:border-indigo-500 transition-colors">
                 <button onclick="iniciarSesionPorPin()" id="btn-login"
                         class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-bold text-sm tracking-widest uppercase shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-transform">
-                    🚀 Entrar al Sistema
+                     Entrar al Sistema
                 </button>
             </div>
         </div>
     </div>
 
     <div id="view-app" class="view-section">
-        <header class="bg-gray-900/80 backdrop-blur-md border-b border-gray-800/60 p-4 sticky top-0 z-50">
+        <header class="bg-white-900/80 backdrop-blur-md border-b border-gray-800/60 p-4 sticky top-0 z-50">
             <div class="flex justify-between items-center max-w-md mx-auto">
                 <h1 class="text-xs font-black tracking-widest uppercase text-indigo-400" id="app-user-title">Cargando...</h1>
                 <button onclick="cerrarSesion()" class="text-[10px] uppercase tracking-widest bg-gray-800 border border-gray-700 px-3 py-2 rounded-xl font-bold text-gray-300 hover:bg-red-950/30 hover:text-red-400 hover:border-red-900/50 transition-colors">
-                    🚪 Salir
+                     Salir
                 </button>
             </div>
             
             <div id="admin-tabs" class="hidden max-w-md mx-auto flex mt-4 bg-gray-950 border border-gray-800/80 rounded-xl p-1 text-[11px] font-bold tracking-wider uppercase">
-                <button onclick="switchTab('clientes')" id="tab-btn-clientes" class="w-1/3 py-2.5 text-center rounded-lg bg-indigo-600 text-white transition-all">👥 Clientes</button>
-                <button onclick="switchTab('proveedores')" id="tab-btn-proveedores" class="w-1/3 py-2.5 text-center rounded-lg text-gray-400 transition-all">🚚 Provs</button>
-                <button onclick="switchTab('config')" id="tab-btn-config" class="w-1/3 py-2.5 text-center rounded-lg text-gray-400 transition-all">⚙️ Panel</button>
+                <button onclick="switchTab('clientes')" id="tab-btn-clientes" class="w-1/3 py-2.5 text-center rounded-lg bg-indigo-600 text-white transition-all">Clientes</button>
+                <button onclick="switchTab('proveedores')" id="tab-btn-proveedores" class="w-1/3 py-2.5 text-center rounded-lg text-gray-400 transition-all"> Provs</button>
+                <button onclick="switchTab('config')" id="tab-btn-config" class="w-1/3 py-2.5 text-center rounded-lg text-gray-400 transition-all">Conf.</button>
             </div>
         </header>
 
@@ -63,9 +63,9 @@
                 <div class="bg-gray-900 border border-gray-800/80 p-4 rounded-2xl shadow-sm">
                     <h3 class="font-bold text-gray-400 mb-2.5 text-[10px] uppercase tracking-widest">Nuevo Cliente a Crédito</h3>
                     <div class="space-y-2">
-                        <input type="text" id="new-cli-nombre" placeholder="Nombre o apodo del cliente" 
+                        <input type="text" id="new-cli-nombre" placeholder="Nombre" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
-                        <input type="tel" id="new-cli-telefono" placeholder="WhatsApp (Ej: 50688888888)" 
+                        <input type="tel" id="new-cli-telefono" placeholder="WhatsApp (WhatsApp)" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
                         <button onclick="crearCliente()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Añadir Cliente</button>
                     </div>
@@ -85,23 +85,23 @@
                     </div>
                     
                     <div class="space-y-2 pt-1">
-                        <input type="text" id="new-prov-nombre" placeholder="Nombre de Distribuidora (Ej: Tienda Rosa)" 
+                        <input type="text" id="new-prov-nombre" placeholder="Nombre de Distribuidora" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
-                        <input type="email" id="new-prov-email" placeholder="Correo del proveedor (Ej: elbinchavez@gmail.com)" 
+                        <input type="email" id="new-prov-email" placeholder=" (nombre@cliente.com)" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
-                        <input type="tel" id="new-prov-telefono" placeholder="Número de WhatsApp (Ej: 50677777777)" 
+                        <input type="tel" id="new-prov-telefono" placeholder="Número de WhatsApp" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
-                        <input type="password" pattern="\d*" inputmode="numeric" id="new-prov-pin" placeholder="Asignar PIN de acceso (Ej: 123456)" 
+                        <input type="password" pattern="\d*" inputmode="numeric" id="new-prov-pin" placeholder="Asignar PIN de acceso" 
                                class="w-full bg-gray-950 border border-gray-800 p-3 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
                         
                         <button onclick="crearProveedor()" id="btn-crear-prov" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest mt-2 transition-colors shadow-md">
-                            🚀 Crear y Habilitar Proveedor
+                            Crear y Habilitar Proveedor
                         </button>
                     </div>
                 </div>
 
                 <div class="bg-gray-900 border border-gray-800/80 p-4 rounded-2xl text-center">
-                    <p class="text-[11px] text-gray-400 font-medium">🛡️ Sistema de Gestión Privado — Mini Súper Toñita 2026</p>
+                    <p class="text-[11px] text-gray-400 font-medium"> Mini Súper Toñita 2026</p>
                 </div>
             </section>
         </main>
@@ -123,8 +123,8 @@
                        class="w-full bg-gray-950 border border-gray-800 p-3.5 rounded-xl text-2xl font-bold text-emerald-400 text-center focus:outline-none focus:border-emerald-500">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Detalle o Ref. de Factura</label>
-                <input type="text" id="modal-detalle" placeholder="Ej: Factura #245" 
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Detalle de Factura</label>
+                <input type="text" id="modal-detalle" placeholder="escribe una descripcion" 
                        class="w-full bg-gray-950 border border-gray-800 p-2.5 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
             </div>
             <div>
@@ -133,7 +133,7 @@
             </div>
             <button onclick="ejecutarMovimiento()" id="btn-guardar-mov" 
                     class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest shadow-md transition-colors">
-                💾 Guardar en Base de Datos
+                 Guardar en Base de Datos
             </button>
         </div>
     </div>
