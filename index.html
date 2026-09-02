@@ -16,8 +16,8 @@
 .bg-gray-900 { background-color: #c7c6c6 !important; border: 1px solid #e5e7eb !important; }
 .bg-gray-950 { background-color: #eeebeb !important; border: 1px solid #e5e7eb !important; }
 h1, h2, h3, h4, span, p, label { color: #000000 !important; }
-.text-gray-500 { color: #2c2c2c !important; }
-.text-gray-400 { color: #020202 !important; }
+.text-black-500 { color: #000 !important; }
+.text-black-400 { color: #000 !important; }
 input { border: 1px solid #afafb1 !important; color: #fafafa !important; }
     </style>
 </head>
@@ -120,17 +120,17 @@ input { border: 1px solid #afafb1 !important; color: #fafafa !important; }
             <input type="hidden" id="modal-tipo-movimiento">
             
             <div>
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Monto en Efectivo ($)</label>
+                <label class="block text-[10px] font-bold text-balck-500 uppercase tracking-widest mb-1.5">Monto en Efectivo ($)</label>
                 <input type="number" id="modal-monto" step="0.01" placeholder="0.00" 
                        class="w-full bg-gray-950 border border-gray-800 p-3.5 rounded-xl text-2xl font-bold text-emerald-400 text-center focus:outline-none focus:border-emerald-500">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Detalle de Factura</label>
+                <label class="block text-[10px] font-bold text-black-500 uppercase tracking-widest mb-1.5">Detalle de Factura</label>
                 <input type="text" id="modal-detalle" placeholder="escribe una descripcion" 
                        class="w-full bg-gray-950 border border-gray-800 p-2.5 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Adjuntar Evidencia (Foto / PDF)</label>
+                <label class="block text-[10px] font-bold text-black-500 uppercase tracking-widest mb-1.5">Adjuntar Evidencia (Foto / PDF)</label>
                 <input type="file" id="modal-file" accept="image/*,application/pdf" class="w-full text-xs text-gray-500 bg-gray-950 p-2 rounded-xl border border-gray-800">
             </div>
             <button onclick="ejecutarMovimiento()" id="btn-guardar-mov" 
